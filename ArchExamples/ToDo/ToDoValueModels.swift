@@ -22,3 +22,7 @@ struct ToDoViewState {
 enum ToDoViewAction {
     
 }
+
+enum ToDoViewChange {
+    
+}
