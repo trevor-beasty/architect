@@ -13,6 +13,10 @@
 		E2D4B36D21DA87C7000C7B10 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E2D4B36B21DA87C7000C7B10 /* Main.storyboard */; };
 		E2D4B36F21DA87C9000C7B10 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E2D4B36E21DA87C9000C7B10 /* Assets.xcassets */; };
 		E2D4B37221DA87C9000C7B10 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E2D4B37021DA87C9000C7B10 /* LaunchScreen.storyboard */; };
+		E2D4B37B21DA8980000C7B10 /* ToDoViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2D4B37A21DA8980000C7B10 /* ToDoViewModel.swift */; };
+		E2D4B37D21DA89B3000C7B10 /* ToDoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2D4B37C21DA89B3000C7B10 /* ToDoViewController.swift */; };
+		E2D4B37F21DA89F1000C7B10 /* ToDoValueModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2D4B37E21DA89F1000C7B10 /* ToDoValueModels.swift */; };
+		E2D4B38121DA8D6D000C7B10 /* ToDoRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2D4B38021DA8D6D000C7B10 /* ToDoRepository.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,6 +29,10 @@
 		E2D4B36E21DA87C9000C7B10 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E2D4B37121DA87C9000C7B10 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		E2D4B37321DA87C9000C7B10 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E2D4B37A21DA8980000C7B10 /* ToDoViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToDoViewModel.swift; sourceTree = "<group>"; };
+		E2D4B37C21DA89B3000C7B10 /* ToDoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToDoViewController.swift; sourceTree = "<group>"; };
+		E2D4B37E21DA89F1000C7B10 /* ToDoValueModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToDoValueModels.swift; sourceTree = "<group>"; };
+		E2D4B38021DA8D6D000C7B10 /* ToDoRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToDoRepository.swift; sourceTree = "<group>"; };
 		FFE802AB793396A48F72D1E7 /* Pods-ArchExamples.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ArchExamples.release.xcconfig"; path = "Pods/Target Support Files/Pods-ArchExamples/Pods-ArchExamples.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -78,6 +86,7 @@
 		E2D4B36621DA87C7000C7B10 /* ArchExamples */ = {
 			isa = PBXGroup;
 			children = (
+				E2D4B37921DA895D000C7B10 /* ToDo */,
 				E2D4B36721DA87C7000C7B10 /* AppDelegate.swift */,
 				E2D4B36921DA87C7000C7B10 /* ViewController.swift */,
 				E2D4B36B21DA87C7000C7B10 /* Main.storyboard */,
@@ -86,6 +95,17 @@
 				E2D4B37321DA87C9000C7B10 /* Info.plist */,
 			);
 			path = ArchExamples;
+			sourceTree = "<group>";
+		};
+		E2D4B37921DA895D000C7B10 /* ToDo */ = {
+			isa = PBXGroup;
+			children = (
+				E2D4B37A21DA8980000C7B10 /* ToDoViewModel.swift */,
+				E2D4B37C21DA89B3000C7B10 /* ToDoViewController.swift */,
+				E2D4B37E21DA89F1000C7B10 /* ToDoValueModels.swift */,
+				E2D4B38021DA8D6D000C7B10 /* ToDoRepository.swift */,
+			);
+			path = ToDo;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -204,8 +224,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E2D4B37D21DA89B3000C7B10 /* ToDoViewController.swift in Sources */,
+				E2D4B37F21DA89F1000C7B10 /* ToDoValueModels.swift in Sources */,
 				E2D4B36A21DA87C7000C7B10 /* ViewController.swift in Sources */,
+				E2D4B37B21DA8980000C7B10 /* ToDoViewModel.swift in Sources */,
 				E2D4B36821DA87C7000C7B10 /* AppDelegate.swift in Sources */,
+				E2D4B38121DA8D6D000C7B10 /* ToDoRepository.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
