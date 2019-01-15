@@ -15,14 +15,8 @@ struct ToDo {
     var createdDate: Date
 }
 
-struct ToDoViewState {
-    var toDos: [ToDo]
-}
-
-enum ToDoViewAction {
-    
-}
-
-enum ToDoViewChange {
-    
+enum ToDoViewState {
+    case loading
+    case error
+    case toDos([ToDo])
 }
