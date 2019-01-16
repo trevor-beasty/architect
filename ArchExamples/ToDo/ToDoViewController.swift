@@ -25,7 +25,8 @@ class ToDoViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setUp()
-        bindObservables()
+        bindState()
+        bindIntents()
     }
     
     private func setUp() {
@@ -66,20 +67,12 @@ class ToDoViewController: UIViewController {
         style()
     }
     
-    private func bindObservables() {
-        
-        let toDos = state.asObservable().map({ state -> [ToDo] in
-            switch state {
-            case .loading, .error:
-                return []
-            case .toDos(let toDos):
-                return toDos
-            }
-        })
-        
+    private func bindState() {
+    
         // table
         
-        toDos
+        state.asObservable()
+            .map({ $0.toDos })
             .bind(to: table.rx.items(cellIdentifier: "ToDoCell", cellType: ToDoCell.self)) { row, toDo, cell in
                 cell.configure(toDo: toDo)
             }
@@ -87,26 +80,29 @@ class ToDoViewController: UIViewController {
         
     }
     
-}
-
-extension ToDoViewController {
-    
-    var searchText: Observable<String?> {
-        return searchBar.rx.text.asObservable()
-    }
-    
-    var didPressAdd: Observable<()> {
-        return addButton.rx
+    private func bindIntents() {
+        
+        searchBar.rx.text.asObservable()
+            .map({ ToDoViewIntent.searchToDos(searchText: $0) })
+            .bind(to: intentSubject)
+            .disposed(by: bag)
+        
+        addButton.rx
             .controlEvent(.touchUpInside)
             .throttle(2.0, scheduler: MainScheduler.instance)
             .asObservable()
-    }
-    
-    var didSelectToDo: Observable<ToDo> {
+            .map({ return ToDoViewIntent.addToDo })
+            .bind(to: intentSubject)
+            .disposed(by: bag)
+        
         return table.rx
             .modelSelected(ToDo.self)
             .throttle(2.0, scheduler: MainScheduler.instance)
             .asObservable()
+            .map({ return ToDoViewIntent.showDetail($0) })
+            .bind(to: intentSubject)
+            .disposed(by: bag)
+        
     }
     
 }

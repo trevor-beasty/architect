@@ -43,7 +43,7 @@ struct ToDoViewState: Equatable {
     
     enum State: Equatable {
         case loading
-        case error(message: String)
+        case error
         case toDos
     }
     
@@ -111,7 +111,17 @@ class ToDoViewModel {
     }
     
     private func reduce(state: ToDoViewState, for change: ToDoViewChange) -> ToDoViewState {
-        fatalError()
+        var reduced = stateVariable.value
+        switch change {
+        case .fetchingToDos:
+            reduced.state = .loading
+        case .fetchedToDos(let toDos):
+            reduced.toDos = toDos
+            reduced.state = .toDos
+        case .error:
+            reduced.state = .error
+        }
+        return reduced
     }
 
     private enum ToDoViewChange {
