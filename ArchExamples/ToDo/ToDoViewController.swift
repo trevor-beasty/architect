@@ -29,6 +29,11 @@ class ToDoViewController: UIViewController {
         bindIntents()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        intentSubject.onNext(.loadToDos)
+    }
+    
     private func setUp() {
         
         func setUpConstraints() {
@@ -78,6 +83,12 @@ class ToDoViewController: UIViewController {
             }
             .disposed(by: bag)
         
+        state.asObservable()
+            .subscribe(onNext: { state in
+                fatalError()
+            })
+            .disposed(by: bag)
+        
     }
     
     private func bindIntents() {
@@ -95,7 +106,7 @@ class ToDoViewController: UIViewController {
             .bind(to: intentSubject)
             .disposed(by: bag)
         
-        return table.rx
+        table.rx
             .modelSelected(ToDo.self)
             .throttle(2.0, scheduler: MainScheduler.instance)
             .asObservable()

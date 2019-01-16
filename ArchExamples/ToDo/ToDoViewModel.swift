@@ -50,13 +50,8 @@ struct ToDoViewState: Equatable {
 }
 
 func constructToDoModule() -> UIViewController {
-    let toDos: [ToDo] = [
-        ToDo(title: "Put on deodorant", description: "Pronto", isCompleted: false, createdDate: Date()),
-        ToDo(title: "Buy cool backpack", description: nil, isCompleted: false, createdDate: Date()),
-        ToDo(title: "Get paid", description: "lots", isCompleted: true, createdDate: Date())
-    ]
     let viewController = ToDoViewController()
-    let viewModel = ToDoViewModel(toDos: toDos)
+    let viewModel = ToDoViewModel(toDos: [])
     viewController.state = viewModel.stateVariable.asObservable()
     viewController.intentSubject = viewModel.intentSubject
     viewModel.subscribe()
@@ -65,11 +60,10 @@ func constructToDoModule() -> UIViewController {
 
 class ToDoViewModel {
     
-    var getToDos: Single<[ToDo]>!
-    
     let stateVariable: Variable<ToDoViewState>
     let intentSubject = PublishSubject<ToDoViewIntent>()
     private let bag = DisposeBag()
+    private let toDoService = ToDoService()
     
     init(toDos: [ToDo]) {
         let state = ToDoViewState(toDos: toDos, state: .toDos, searchText: nil)
@@ -89,7 +83,7 @@ class ToDoViewModel {
         case .loadToDos:
             
             updateState(for: .fetchingToDos)
-            getToDos
+            toDoService.getToDos()
                 .subscribe(
                     onSuccess: { (toDos) in
                         self.updateState(for: .fetchedToDos(toDos))
