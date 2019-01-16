@@ -27,8 +27,21 @@ class ToDoService {
         return delayedSingle({ return Result<ToDo>.success(newToDo) })
     }
     
-    func updateToDo(id: String, title: String? = nil, description: String? = nil, isCompleted: Bool? = nil) {
-        
+    func updateToDo(id: String, title: String? = nil, description: String? = nil, isCompleted: Bool? = nil) -> Single<ToDo> {
+        let result: () -> Result<ToDo> = {
+            if let existingIndex = self.toDos.firstIndex(where: { $0.id == id }) {
+                var toDo = self.toDos[existingIndex]
+                if let title = title { toDo.title = title }
+                if let description = description { toDo.description = description }
+                if let isCompleted = isCompleted { toDo.isCompleted = isCompleted }
+                self.toDos[existingIndex] = toDo
+                return .success(toDo)
+            }
+            else {
+                return .failure(ServiceError.toDoDoesNotExist(id: id))
+            }
+        }
+        return delayedSingle(result)
     }
     
     private func delayedSingle<T>(_ result: @escaping () -> Result<T>) -> Single<T> {
@@ -51,6 +64,11 @@ class ToDoService {
     private enum Result<T> {
         case success(T)
         case failure(Error)
+    }
+    
+    enum ServiceError: Error {
+        case toDoDoesNotExist(id: String)
+        case zombieApocalypse
     }
     
 }

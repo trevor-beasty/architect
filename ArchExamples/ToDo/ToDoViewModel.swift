@@ -11,9 +11,9 @@ import RxSwift
 
 struct ToDo: Equatable {
     let id: String = UUID().uuidString
-    let title: String
-    let description: String?
-    let isCompleted: Bool
+    var title: String
+    var description: String?
+    var isCompleted: Bool
     let createdDate: Date
 }
 
@@ -97,6 +97,9 @@ class ToDoViewModel {
             updateState(for: .searchText(searchText))
             
         case .addToDo:
+            fatalError()
+            
+        case .showDetail(let toDo):
             fatalError()
             
         default:
