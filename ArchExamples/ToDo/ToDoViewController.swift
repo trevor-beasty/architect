@@ -13,6 +13,7 @@ import RxCocoa
 class ToDoViewController: UIViewController {
     
     var state: Observable<ToDoViewState>!
+    var intentSubject: PublishSubject<ToDoViewIntent>!
     
     private let bag = DisposeBag()
     

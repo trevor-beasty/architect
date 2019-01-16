@@ -9,17 +9,44 @@
 import Foundation
 import RxSwift
 
-struct ToDo {
+struct ToDo: Equatable {
     var title: String
     var description: String?
     var isCompleted: Bool
     var createdDate: Date
 }
 
-enum ToDoViewState {
-    case loading
-    case error
-    case toDos([ToDo])
+enum ToDoViewIntent: Equatable {
+    case loadToDos
+    case addToDo
+    case showDetail(ToDo)
+    case searchToDos(searchText: String?)
+}
+
+struct ToDoViewState: Equatable {
+    var toDos: [ToDo]
+    var state: State
+    var searchText: String?
+    
+    var displayToDos: [ToDo] {
+        let filteredToDos: [ToDo]
+        if let searchText = searchText, !searchText.isEmpty {
+            filteredToDos = self.toDos.filter({
+                return $0.title.contains(searchText)
+            })
+        }
+        else {
+            filteredToDos = self.toDos
+        }
+        return filteredToDos
+    }
+    
+    enum State: Equatable {
+        case loading
+        case error(message: String)
+        case toDos
+    }
+    
 }
 
 func constructToDoModule() -> UIViewController {
@@ -28,53 +55,69 @@ func constructToDoModule() -> UIViewController {
         ToDo(title: "Buy cool backpack", description: nil, isCompleted: false, createdDate: Date()),
         ToDo(title: "Get paid", description: "lots", isCompleted: true, createdDate: Date())
     ]
-    let viewModel = ToDoViewModel(toDos: toDos)
     let viewController = ToDoViewController()
-    viewController.state = viewModel.stateSubject.asObservable()
-    viewModel.searchText = viewController.searchText
-    viewModel.didPressAdd = viewController.didPressAdd
-    viewModel.didSelectToDo = viewController.didSelectToDo
+    let viewModel = ToDoViewModel(toDos: toDos)
+    viewController.state = viewModel.stateVariable.asObservable()
+    viewController.intentSubject = viewModel.intentSubject
     viewModel.subscribe()
     return viewController
 }
 
 class ToDoViewModel {
     
-    var searchText: Observable<String?>!
-    var didPressAdd: Observable<()>!
-    var didSelectToDo: Observable<ToDo>!
+    var getToDos: Single<[ToDo]>!
     
-    let stateSubject: Variable<ToDoViewState>
+    let stateVariable: Variable<ToDoViewState>
+    let intentSubject = PublishSubject<ToDoViewIntent>()
     private let bag = DisposeBag()
     
-    private var toDos: [ToDo]
-    
     init(toDos: [ToDo]) {
-        self.toDos = toDos
-        self.stateSubject = Variable(ToDoViewState.toDos(toDos))
+        let state = ToDoViewState(toDos: toDos, state: .toDos, searchText: nil)
+        self.stateVariable = Variable(state)
     }
     
     func subscribe() {
         
-        searchText
-            .subscribe(onNext: { searchText in
-                let filteredToDos: [ToDo]
-                if let searchText = searchText, !searchText.isEmpty {
-                    filteredToDos = self.toDos.filter({
-                        return $0.title.contains(searchText)
-                    })
-                }
-                else {
-                    filteredToDos = self.toDos
-                }
-                self.stateSubject.value = .toDos(filteredToDos)
-            })
+        intentSubject.asObservable()
+            .subscribe(onNext: { intent in self.process(intent: intent) })
             .disposed(by: bag)
         
     }
     
-}
+    private func process(intent: ToDoViewIntent) {
+        switch intent {
+        case .loadToDos:
+            
+            updateState(for: .fetchingToDos)
+            getToDos
+                .subscribe(
+                    onSuccess: { (toDos) in
+                        self.updateState(for: .fetchedToDos(toDos))
+                },
+                    onError: { (error) in
+                        self.updateState(for: .error)
+                })
+                .disposed(by: bag)
+            
+        default:
+            fatalError()
+        }
+    }
+    
+    
+    private func updateState(for change: ToDoViewChange) {
+        let newState = reduce(state: stateVariable.value, for: change)
+        stateVariable.value = newState
+    }
+    
+    private func reduce(state: ToDoViewState, for change: ToDoViewChange) -> ToDoViewState {
+        fatalError()
+    }
 
-extension ToDoViewModel {
+    private enum ToDoViewChange {
+        case fetchingToDos
+        case fetchedToDos([ToDo])
+        case error
+    }
     
 }
