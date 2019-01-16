@@ -13,13 +13,15 @@ class ToDoService {
     
     func getToDos() -> Single<[ToDo]> {
         return Single<[ToDo]>.create { (single) -> Disposable in
-            sleep(2)
-            let toDos: [ToDo] = [
-                ToDo(title: "Put on deodorant", description: "Pronto", isCompleted: false, createdDate: Date()),
-                ToDo(title: "Buy cool backpack", description: nil, isCompleted: false, createdDate: Date()),
-                ToDo(title: "Get paid", description: "lots", isCompleted: true, createdDate: Date())
-            ]
-            single(.success(toDos))
+            DispatchQueue.global().async {
+                sleep(2)
+                let toDos: [ToDo] = [
+                    ToDo(title: "Put on deodorant", description: "Pronto", isCompleted: false, createdDate: Date()),
+                    ToDo(title: "Buy cool backpack", description: nil, isCompleted: false, createdDate: Date()),
+                    ToDo(title: "Get paid", description: "lots", isCompleted: true, createdDate: Date())
+                ]
+                single(.success(toDos))
+            }
             return Disposables.create()
         }
     }

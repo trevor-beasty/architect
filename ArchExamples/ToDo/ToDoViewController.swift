@@ -21,6 +21,9 @@ class ToDoViewController: UIViewController {
     private let addButton = UIButton()
     private let addButtonLayoutGuide = UILayoutGuide()
     private let table = UITableView()
+    private let activityIndicator = UIActivityIndicatorView(style: .whiteLarge)
+    
+    private var screenState: ScreenState = .toDos
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,10 +40,11 @@ class ToDoViewController: UIViewController {
     private func setUp() {
         
         func setUpConstraints() {
-            [searchBar, addButton, table].forEach({
+            [searchBar, addButton, table, activityIndicator].forEach({
                 $0.translatesAutoresizingMaskIntoConstraints = false
                 view.addSubview($0)
             })
+            view.bringSubviewToFront(activityIndicator)
             view.addLayoutGuide(addButtonLayoutGuide)
             NSLayoutConstraint.activate([
                 searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -53,7 +57,11 @@ class ToDoViewController: UIViewController {
                 table.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
                 table.bottomAnchor.constraint(equalTo: view.bottomAnchor),
                 table.leftAnchor.constraint(equalTo: view.leftAnchor),
-                table.rightAnchor.constraint(equalTo: view.rightAnchor)
+                table.rightAnchor.constraint(equalTo: view.rightAnchor),
+                activityIndicator.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+                activityIndicator.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+                activityIndicator.leftAnchor.constraint(equalTo: view.leftAnchor),
+                activityIndicator.rightAnchor.constraint(equalTo: view.rightAnchor)
                 ])
         }
         
@@ -65,11 +73,15 @@ class ToDoViewController: UIViewController {
             view.backgroundColor = .white
             addButton.setTitle("Add", for: .normal)
             addButton.setTitleColor(.blue, for: .normal)
+            activityIndicator.backgroundColor = .black
+            activityIndicator.alpha = 0.3
+            activityIndicator.hidesWhenStopped = true
         }
         
         setUpConstraints()
         setUpTable()
         style()
+        activityIndicator.isHidden = true
     }
     
     private func bindState() {
@@ -77,6 +89,7 @@ class ToDoViewController: UIViewController {
         // table
         
         state.asObservable()
+            .observeOn(MainScheduler.instance)
             .map({ $0.toDos })
             .bind(to: table.rx.items(cellIdentifier: "ToDoCell", cellType: ToDoCell.self)) { row, toDo, cell in
                 cell.configure(toDo: toDo)
@@ -84,8 +97,9 @@ class ToDoViewController: UIViewController {
             .disposed(by: bag)
         
         state.asObservable()
+            .observeOn(MainScheduler.instance)
             .subscribe(onNext: { state in
-                fatalError()
+                self.render(screenState: state.screenState)
             })
             .disposed(by: bag)
         
@@ -114,6 +128,48 @@ class ToDoViewController: UIViewController {
             .bind(to: intentSubject)
             .disposed(by: bag)
         
+    }
+    
+    private func render(screenState: ToDoViewState.ScreenState) {
+        switch (screenState, self.screenState) {
+        case (.toDos, .toDos), (.loading, .loading), (.error, .error):
+            return
+        default:
+            break
+        }
+        switch self.screenState {
+        case .loading(activityIndicator: let activityIndicator):
+            activityIndicator.stopAnimating()
+        case .error(let alertController):
+            if presentedViewController === alertController {
+                alertController.dismiss(animated: true, completion: nil)
+            }
+        case .toDos:
+            break
+        }
+        let newScreenState: ScreenState
+        switch screenState {
+        case .loading:
+            activityIndicator.startAnimating()
+            newScreenState = .loading(activityIndicator: activityIndicator)
+        case .error:
+            let alertController = UIAlertController(title: "Error", message: "Probably a backend issue", preferredStyle: .alert)
+            present(alertController, animated: true, completion: nil)
+            newScreenState = .error(alertController)
+        case .toDos:
+            newScreenState = .toDos
+        }
+        self.screenState = newScreenState
+    }
+   
+}
+
+extension ToDoViewController {
+    
+    private enum ScreenState {
+        case toDos
+        case loading(activityIndicator: UIActivityIndicatorView)
+        case error(UIAlertController)
     }
     
 }

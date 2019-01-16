@@ -25,7 +25,7 @@ enum ToDoViewIntent: Equatable {
 
 struct ToDoViewState: Equatable {
     var toDos: [ToDo]
-    var state: State
+    var screenState: ScreenState
     var searchText: String?
     
     var displayToDos: [ToDo] {
@@ -41,7 +41,7 @@ struct ToDoViewState: Equatable {
         return filteredToDos
     }
     
-    enum State: Equatable {
+    enum ScreenState: Equatable {
         case loading
         case error
         case toDos
@@ -66,7 +66,7 @@ class ToDoViewModel {
     private let toDoService = ToDoService()
     
     init(toDos: [ToDo]) {
-        let state = ToDoViewState(toDos: toDos, state: .toDos, searchText: nil)
+        let state = ToDoViewState(toDos: toDos, screenState: .toDos, searchText: nil)
         self.stateVariable = Variable(state)
     }
     
@@ -93,6 +93,9 @@ class ToDoViewModel {
                 })
                 .disposed(by: bag)
             
+        case .searchToDos(searchText: let searchText):
+            return
+            
         default:
             fatalError()
         }
@@ -108,12 +111,12 @@ class ToDoViewModel {
         var reduced = stateVariable.value
         switch change {
         case .fetchingToDos:
-            reduced.state = .loading
+            reduced.screenState = .loading
         case .fetchedToDos(let toDos):
             reduced.toDos = toDos
-            reduced.state = .toDos
+            reduced.screenState = .toDos
         case .error:
-            reduced.state = .error
+            reduced.screenState = .error
         }
         return reduced
     }
