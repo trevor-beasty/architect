@@ -10,10 +10,11 @@ import Foundation
 import RxSwift
 
 struct ToDo: Equatable {
-    var title: String
-    var description: String?
-    var isCompleted: Bool
-    var createdDate: Date
+    let id: String = UUID().uuidString
+    let title: String
+    let description: String?
+    let isCompleted: Bool
+    let createdDate: Date
 }
 
 enum ToDoViewIntent: Equatable {
@@ -81,9 +82,8 @@ class ToDoViewModel {
     private func process(intent: ToDoViewIntent) {
         switch intent {
         case .loadToDos:
-            
             updateState(for: .fetchingToDos)
-            toDoService.getToDos()
+            toDoService.readToDos()
                 .subscribe(
                     onSuccess: { (toDos) in
                         self.updateState(for: .fetchedToDos(toDos))
@@ -94,7 +94,10 @@ class ToDoViewModel {
                 .disposed(by: bag)
             
         case .searchToDos(searchText: let searchText):
-            return
+            updateState(for: .searchText(searchText))
+            
+        case .addToDo:
+            fatalError()
             
         default:
             fatalError()
@@ -117,6 +120,8 @@ class ToDoViewModel {
             reduced.screenState = .toDos
         case .error:
             reduced.screenState = .error
+        case .searchText(let searchText):
+            reduced.searchText = searchText
         }
         return reduced
     }
@@ -125,6 +130,7 @@ class ToDoViewModel {
         case fetchingToDos
         case fetchedToDos([ToDo])
         case error
+        case searchText(String?)
     }
     
 }

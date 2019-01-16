@@ -90,7 +90,7 @@ class ToDoViewController: UIViewController {
         
         state.asObservable()
             .observeOn(MainScheduler.instance)
-            .map({ $0.toDos })
+            .map({ $0.displayToDos })
             .bind(to: table.rx.items(cellIdentifier: "ToDoCell", cellType: ToDoCell.self)) { row, toDo, cell in
                 cell.configure(toDo: toDo)
             }
