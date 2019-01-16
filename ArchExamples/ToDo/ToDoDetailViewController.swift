@@ -13,6 +13,7 @@ class ToDoDetailViewController: UIViewController {
     private let titleField = UITextField()
     private let descriptionField = UITextField()
     private let completedSwitch = UISwitch()
+    private let updateButton = UIButton()
     
     
     

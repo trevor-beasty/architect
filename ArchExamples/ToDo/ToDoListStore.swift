@@ -1,5 +1,5 @@
 //
-//  ToDoViewModel.swift
+//  ToDoListStore.swift
 //  ArchExamples
 //
 //  Created by Trevor Beasty on 12/31/18.
@@ -17,14 +17,14 @@ struct ToDo: Equatable {
     let createdDate: Date
 }
 
-enum ToDoViewIntent: Equatable {
+enum ToDoListIntent: Equatable {
     case loadToDos
     case addToDo
     case showDetail(ToDo)
     case searchToDos(searchText: String?)
 }
 
-struct ToDoViewState: Equatable {
+struct ToDoListState: Equatable {
     var toDos: [ToDo]
     var screenState: ScreenState
     var searchText: String?
@@ -51,23 +51,23 @@ struct ToDoViewState: Equatable {
 }
 
 func constructToDoModule() -> UIViewController {
-    let viewController = ToDoViewController()
-    let viewModel = ToDoViewModel(toDos: [])
-    viewController.state = viewModel.stateVariable.asObservable()
-    viewController.intentSubject = viewModel.intentSubject
-    viewModel.subscribe()
+    let viewController = ToDoListViewController()
+    let store = ToDoListStore(toDos: [])
+    viewController.state = store.stateVariable.asObservable()
+    viewController.intentSubject = store.intentSubject
+    store.subscribe()
     return viewController
 }
 
-class ToDoViewModel {
+class ToDoListStore {
     
-    let stateVariable: Variable<ToDoViewState>
-    let intentSubject = PublishSubject<ToDoViewIntent>()
+    let stateVariable: Variable<ToDoListState>
+    let intentSubject = PublishSubject<ToDoListIntent>()
     private let bag = DisposeBag()
     private let toDoService = ToDoService()
     
     init(toDos: [ToDo]) {
-        let state = ToDoViewState(toDos: toDos, screenState: .toDos, searchText: nil)
+        let state = ToDoListState(toDos: toDos, screenState: .toDos, searchText: nil)
         self.stateVariable = Variable(state)
     }
     
@@ -79,7 +79,7 @@ class ToDoViewModel {
         
     }
     
-    private func process(intent: ToDoViewIntent) {
+    private func process(intent: ToDoListIntent) {
         switch intent {
         case .loadToDos:
             updateState(for: .fetchingToDos)
@@ -113,7 +113,7 @@ class ToDoViewModel {
         stateVariable.value = newState
     }
     
-    private func reduce(state: ToDoViewState, for change: ToDoViewChange) -> ToDoViewState {
+    private func reduce(state: ToDoListState, for change: ToDoViewChange) -> ToDoListState {
         var reduced = stateVariable.value
         switch change {
         case .fetchingToDos:

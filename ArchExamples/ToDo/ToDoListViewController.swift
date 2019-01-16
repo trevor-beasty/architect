@@ -1,5 +1,5 @@
 //
-//  ToDoViewController.swift
+//  ToDoListViewController.swift
 //  ArchExamples
 //
 //  Created by Trevor Beasty on 12/31/18.
@@ -10,10 +10,10 @@ import UIKit
 import RxSwift
 import RxCocoa
 
-class ToDoViewController: UIViewController {
+class ToDoListViewController: UIViewController {
     
-    var state: Observable<ToDoViewState>!
-    var intentSubject: PublishSubject<ToDoViewIntent>!
+    var state: Observable<ToDoListState>!
+    var intentSubject: PublishSubject<ToDoListIntent>!
     
     private let bag = DisposeBag()
     
@@ -74,7 +74,7 @@ class ToDoViewController: UIViewController {
             addButton.setTitle("Add", for: .normal)
             addButton.setTitleColor(.blue, for: .normal)
             activityIndicator.backgroundColor = .black
-            activityIndicator.alpha = 0.3
+            activityIndicator.alpha = 0.5
             activityIndicator.hidesWhenStopped = true
         }
         
@@ -108,7 +108,7 @@ class ToDoViewController: UIViewController {
     private func bindIntents() {
         
         searchBar.rx.text.asObservable()
-            .map({ ToDoViewIntent.searchToDos(searchText: $0) })
+            .map({ ToDoListIntent.searchToDos(searchText: $0) })
             .bind(to: intentSubject)
             .disposed(by: bag)
         
@@ -116,7 +116,7 @@ class ToDoViewController: UIViewController {
             .controlEvent(.touchUpInside)
             .throttle(2.0, scheduler: MainScheduler.instance)
             .asObservable()
-            .map({ return ToDoViewIntent.addToDo })
+            .map({ return ToDoListIntent.addToDo })
             .bind(to: intentSubject)
             .disposed(by: bag)
         
@@ -124,13 +124,13 @@ class ToDoViewController: UIViewController {
             .modelSelected(ToDo.self)
             .throttle(2.0, scheduler: MainScheduler.instance)
             .asObservable()
-            .map({ return ToDoViewIntent.showDetail($0) })
+            .map({ return ToDoListIntent.showDetail($0) })
             .bind(to: intentSubject)
             .disposed(by: bag)
         
     }
     
-    private func render(screenState: ToDoViewState.ScreenState) {
+    private func render(screenState: ToDoListState.ScreenState) {
         switch (screenState, self.screenState) {
         case (.toDos, .toDos), (.loading, .loading), (.error, .error):
             return
@@ -164,7 +164,7 @@ class ToDoViewController: UIViewController {
    
 }
 
-extension ToDoViewController {
+extension ToDoListViewController {
     
     private enum ScreenState {
         case toDos
