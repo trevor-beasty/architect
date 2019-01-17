@@ -9,7 +9,7 @@
 import Foundation
 import RxSwift
 
-class Store<State, Intent, Change> where State: Equatable, Intent: Equatable, Change: Equatable {
+class Store<State, Intent, Change> {
     
     let stateSubject: Variable<State>
     let intentSubject = PublishSubject<Intent>()
@@ -23,8 +23,15 @@ class Store<State, Intent, Change> where State: Equatable, Intent: Equatable, Ch
     
     init(state: State, reduceIntent: @escaping IntentReducer, reduceChange: @escaping ChangeReducer) {
         self.stateSubject = Variable(state)
-        self.reduceIntent = reduceIntent
-        self.reduceChange = reduceChange
+        self.reduceIntent = { (intent, getState) -> Observable<Change> in
+            print("\nIntent:\n     \(intent)\n")
+            return reduceIntent(intent, getState)
+        }
+        self.reduceChange = { (change, getState) -> State in
+            let newState = reduceChange(change, getState)
+            print("\nChange & New State:\nchange:\n     \(change)\nnew state:\n     \(newState)\n")
+            return newState
+        }
     }
     
     func subscribe() {
