@@ -27,10 +27,12 @@ enum ToDoListIntent: Equatable {
 
 enum ToDoListChange: Equatable {
     case showLoading
-    case showToDos([ToDo])
+    case updateToDos([ToDo])
     case error
     case searchToDos(searchText: String?)
     case updateToDo(ToDo)
+    case revertToState(ToDoListState)
+    case showToDos
 }
 
 struct ToDoListState: Equatable {
@@ -81,7 +83,7 @@ func createToDoListStore() -> ToDoListStore {
         case .loadToDos:
             return toDoService.readToDos().asObservable()
                 .map({ (toDos: [ToDo]) -> ToDoListChange in
-                    ToDoListChange.showToDos(toDos)
+                    ToDoListChange.updateToDos(toDos)
                 })
                 .catchErrorJustReturn(.error)
                 .startWith(.showLoading)
@@ -98,12 +100,14 @@ func createToDoListStore() -> ToDoListStore {
         case let .editToDo(toDo, isCompleted: isCompleted):
             var updated = toDo
             updated.isCompleted = isCompleted
+            var errorState = getState()
+            errorState.screenState = .error
             return toDoService.updateToDo(toDo: updated).asObservable()
-                .map({ (toDo: ToDo) -> ToDoListChange in
-                    return .updateToDo(toDo)
+                .map({ (_: ToDo) -> ToDoListChange in
+                    return .showToDos
                 })
-                .catchErrorJustReturn(.error)
-                .startWith(.showLoading)
+                .catchErrorJustReturn(.revertToState(errorState))
+                .startWith(.updateToDo(updated), .showLoading)
         }
     }
     
@@ -113,7 +117,7 @@ func createToDoListStore() -> ToDoListStore {
         case .showLoading:
             state.screenState = .loading
             
-        case .showToDos(let toDos):
+        case .updateToDos(let toDos):
             state.toDos = toDos
             state.screenState = .toDos
             
@@ -126,6 +130,12 @@ func createToDoListStore() -> ToDoListStore {
         case .updateToDo(let toDo):
             guard let matchingIndex = state.toDos.firstIndex(where: { $0.id == toDo.id }) else { break }
             state.toDos[matchingIndex] = toDo
+            state.screenState = .toDos
+            
+        case .revertToState(let reversionState):
+            state = reversionState
+            
+        case .showToDos:
             state.screenState = .toDos
         }
         return state
