@@ -9,12 +9,9 @@
 import Foundation
 import RxSwift
 
-struct ToDo: Equatable {
-    let id: String = UUID().uuidString
-    var title: String
-    var description: String?
-    var isCompleted: Bool
-    let createdDate: Date
+struct ListToDo: Equatable {
+    let toDo: ToDo
+    var stagedIsCompleted: Bool?
 }
 
 enum ToDoListIntent: Equatable {
@@ -31,7 +28,7 @@ enum ToDoListChange: Equatable {
     case updateToDos([ToDo])
     case error
     case searchToDos(searchText: String?)
-    case updateToDo(ToDo)
+    case updateListToDo(ListToDo)
     case revertToState(ToDoListState)
     case showToDos
 }
@@ -41,19 +38,19 @@ enum ToDoListOutput: Equatable {
 }
 
 struct ToDoListState: Equatable {
-    var toDos: [ToDo]
+    var listToDos: [ListToDo]
     var screenState: ScreenState
     var searchText: String?
     
-    var displayToDos: [ToDo] {
-        let filteredToDos: [ToDo]
+    var displayListToDos: [ListToDo] {
+        let filteredToDos: [ListToDo]
         if let searchText = searchText, !searchText.isEmpty {
-            filteredToDos = self.toDos.filter({
-                return $0.title.contains(searchText)
+            filteredToDos = self.listToDos.filter({
+                return $0.toDo.title.contains(searchText)
             })
         }
         else {
-            filteredToDos = self.toDos
+            filteredToDos = self.listToDos
         }
         return filteredToDos
     }
@@ -79,7 +76,7 @@ typealias ToDoListStore = Store<ToDoListState, ToDoListIntent, ToDoListChange, T
 
 func createToDoListStore() -> ToDoListStore {
     
-    let initialState: ToDoListState = ToDoListState(toDos: [], screenState: .toDos, searchText: nil)
+    let initialState: ToDoListState = ToDoListState(listToDos: [], screenState: .toDos, searchText: nil)
     
     let toDoService = ToDoService()
     
@@ -99,20 +96,22 @@ func createToDoListStore() -> ToDoListStore {
         case .addToDo:
             fatalError()
 
-        case .showDetail(let toDo):
+        case .showDetail:
             fatalError()
             
         case let .editToDo(toDo, isCompleted: isCompleted):
-            var updated = toDo
-            updated.isCompleted = isCompleted
-            var errorState = getState()
+            let state = getState()
+            guard let matchingIndex = state.listToDos.firstIndex(where: { $0.toDo.id == toDo.id }) else { fatalError() }
+            var staged = state.listToDos[matchingIndex]
+            staged.stagedIsCompleted = isCompleted
+            var errorState = state
             errorState.screenState = .error
-            return toDoService.updateToDo(toDo: updated).asObservable()
+            return toDoService.updateToDo(toDo: staged.toDo).asObservable()
                 .map({ (_: ToDo) -> ToDoListChange in
                     return .showToDos
                 })
                 .catchErrorJustReturn(.revertToState(errorState))
-                .startWith(.updateToDo(updated), .showLoading)
+                .startWith(.updateListToDo(staged), .showLoading)
             
         case .dismissError:
             return Observable<ToDoListChange>.just(.showToDos)
@@ -126,7 +125,7 @@ func createToDoListStore() -> ToDoListStore {
             state.screenState = .loading
             
         case .updateToDos(let toDos):
-            state.toDos = toDos
+            state.listToDos = toDos.map({ return ListToDo(toDo: $0, stagedIsCompleted: nil) })
             state.screenState = .toDos
             
         case .error:
@@ -135,9 +134,9 @@ func createToDoListStore() -> ToDoListStore {
         case .searchToDos(searchText: let searchText):
             state.searchText = searchText
             
-        case .updateToDo(let toDo):
-            guard let matchingIndex = state.toDos.firstIndex(where: { $0.id == toDo.id }) else { break }
-            state.toDos[matchingIndex] = toDo
+        case .updateListToDo(let listToDo):
+            guard let matchingIndex = state.listToDos.firstIndex(where: { $0.toDo.id == listToDo.toDo.id }) else { break }
+            state.listToDos[matchingIndex] = listToDo
             state.screenState = .toDos
             
         case .revertToState(let reversionState):

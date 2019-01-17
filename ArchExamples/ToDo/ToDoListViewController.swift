@@ -90,9 +90,9 @@ class ToDoListViewController: UIViewController {
         
         state.asObservable()
             .observeOn(MainScheduler.instance)
-            .map({ $0.displayToDos })
-            .bind(to: table.rx.items(cellIdentifier: "ToDoCell", cellType: ToDoCell.self)) { row, toDo, cell in
-                cell.configure(toDo: toDo)
+            .map({ $0.displayListToDos })
+            .bind(to: table.rx.items(cellIdentifier: "ToDoCell", cellType: ToDoCell.self)) { row, listToDo, cell in
+                cell.configure(listToDo: listToDo)
                 cell.intentSubject = self.intentSubject
             }
             .disposed(by: bag)
@@ -180,7 +180,7 @@ extension ToDoListViewController {
 class ToDoCell: UITableViewCell {
     
     var intentSubject: PublishSubject<ToDoListIntent>!
-    private var toDo: ToDo?
+    private var listToDo: ListToDo?
     
     private let titleLabel = UILabel()
     private let descriptionLabel = UILabel()
@@ -223,8 +223,8 @@ class ToDoCell: UITableViewCell {
     }
     
     @objc private func switchControlValueDidChange() {
-        guard let toDo = toDo else { return }
-        intentSubject.onNext(.editToDo(toDo, isCompleted: switchControl.isOn))
+        guard let listToDo = listToDo else { return }
+        intentSubject.onNext(.editToDo(listToDo.toDo, isCompleted: switchControl.isOn))
     }
     
     override func prepareForReuse() {
@@ -234,14 +234,16 @@ class ToDoCell: UITableViewCell {
         completedLabel.text = nil
     }
     
-    func configure(toDo: ToDo) {
-        titleLabel.text = toDo.title
-        descriptionLabel.text = toDo.description
-        completedLabel.text = toDo.isCompleted ? "Completed" : "Incomplete"
-        if switchControl.isOn != toDo.isCompleted {
-            switchControl.setOn(toDo.isCompleted, animated: false)
+    func configure(listToDo: ListToDo) {
+        titleLabel.text = listToDo.toDo.title
+        descriptionLabel.text = listToDo.toDo.description
+        completedLabel.text = listToDo.toDo.isCompleted ? "Completed" : "Incomplete"
+        // NOTE: Business logic!
+        let isCompleted = listToDo.stagedIsCompleted ?? listToDo.toDo.isCompleted
+        if switchControl.isOn != listToDo.toDo.isCompleted {
+            switchControl.setOn(isCompleted, animated: false)
         }
-        self.toDo = toDo
+        self.listToDo = listToDo
     }
     
 }

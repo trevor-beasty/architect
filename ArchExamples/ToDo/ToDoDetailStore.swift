@@ -23,14 +23,12 @@ enum ToDoDetailIntent: Equatable {
     case commitUpdate()
 }
 
-class ToDoDetailStore {
-    
-    let stateSubject: Variable<ToDoDetailState>
-    let intentSubject = PublishSubject<ToDoDetailIntent>()
-    
-    init(toDo: ToDo) {
-        let state = ToDoDetailState(toDo: toDo, stagedTitle: toDo.title, stagedDescription: toDo.description, stagedIsCompleted: toDo.isCompleted)
-        self.stateSubject = Variable(state)
-    }
+enum ToDoDetailChange: Equatable {
     
 }
+
+enum ToDoDetailOutput: Equatable {
+    
+}
+
+typealias ToDoDetailStore = Store<ToDoDetailState, ToDoDetailIntent, ToDoDetailChange, ToDoDetailOutput>

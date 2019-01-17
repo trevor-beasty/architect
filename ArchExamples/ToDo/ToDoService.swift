@@ -9,6 +9,27 @@
 import Foundation
 import RxSwift
 
+struct ToDo: Equatable {
+    let id: String
+    let title: String
+    let description: String?
+    let isCompleted: Bool
+    let createdDate: Date
+    
+    func updateWith(isCompleted: Bool?) -> ToDo {
+        return ToDo(id: id, title: title, description: description, isCompleted: isCompleted ?? self.isCompleted, createdDate: createdDate)
+    }
+    
+    init(id: String = UUID().uuidString, title: String, description: String?, isCompleted: Bool, createdDate: Date = Date()) {
+        self.id = id
+        self.title = title
+        self.description = description
+        self.isCompleted = isCompleted
+        self.createdDate = createdDate
+    }
+    
+}
+
 class ToDoService {
     
     private var toDos: [ToDo] = [
@@ -27,11 +48,12 @@ class ToDoService {
         return delayedSingle({ return Result<ToDo>.success(newToDo) })
     }
     
-    func updateToDo(toDo: ToDo) -> Single<ToDo> {
+    func updateToDo(toDo: ToDo, isCompleted: Bool? = nil) -> Single<ToDo> {
         let result: () -> Result<ToDo> = {
             if Bool.randTrue(0.5), let matchingIndex = self.toDos.firstIndex(where: { $0.id == toDo.id }) {
-                self.toDos[matchingIndex] = toDo
-                return .success(toDo)
+                let updated = self.toDos[matchingIndex].updateWith(isCompleted: isCompleted)
+                self.toDos[matchingIndex] = updated
+                return .success(updated)
             }
             else {
                 return .failure(ServiceError.toDoDoesNotExist(id: toDo.id))
