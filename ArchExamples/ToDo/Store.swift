@@ -9,7 +9,7 @@
 import Foundation
 import RxSwift
 
-class Store<State, Intent, Change> where State: Equatable, Intent: Equatable {
+class Store<State, Intent, Change> where State: Equatable, Intent: Equatable, Change: Equatable {
     
     let stateSubject: Variable<State>
     let intentSubject = PublishSubject<Intent>()
@@ -30,7 +30,7 @@ class Store<State, Intent, Change> where State: Equatable, Intent: Equatable {
     func subscribe() {
         
         intentSubject.asObservable()
-            .flatMap({
+            .flatMapLatest({
                 return self.reduceIntent($0, { return self.state })
             })
             .subscribe(onNext: {

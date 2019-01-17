@@ -24,6 +24,13 @@ enum ToDoListIntent: Equatable {
     case searchToDos(searchText: String?)
 }
 
+enum ToDoListChange: Equatable {
+    case fetchingToDos
+    case fetchedToDos([ToDo])
+    case error
+    case searchText(String?)
+}
+
 struct ToDoListState: Equatable {
     var toDos: [ToDo]
     var screenState: ScreenState
@@ -50,90 +57,67 @@ struct ToDoListState: Equatable {
     
 }
 
-func constructToDoModule() -> UIViewController {
-    let viewController = ToDoListViewController()
-    let store = ToDoListStore(toDos: [])
-    viewController.state = store.stateVariable.asObservable()
-    viewController.intentSubject = store.intentSubject
-    store.subscribe()
-    return viewController
-}
+//func constructToDoModule() -> UIViewController {
+//    let viewController = ToDoListViewController()
+//    let store = ToDoListStore(toDos: [])
+//    viewController.state = store.stateVariable.asObservable()
+//    viewController.intentSubject = store.intentSubject
+//    store.subscribe()
+//    return viewController
+//}
 
-class ToDoListStore {
-    
-    let stateVariable: Variable<ToDoListState>
-    let intentSubject = PublishSubject<ToDoListIntent>()
-    private let bag = DisposeBag()
-    private let toDoService = ToDoService()
-    
-    init(toDos: [ToDo]) {
-        let state = ToDoListState(toDos: toDos, screenState: .toDos, searchText: nil)
-        self.stateVariable = Variable(state)
-    }
-    
-    func subscribe() {
-        
-        intentSubject.asObservable()
-            .subscribe(onNext: { intent in self.process(intent: intent) })
-            .disposed(by: bag)
-        
-    }
-    
-    private func process(intent: ToDoListIntent) {
-        switch intent {
-        case .loadToDos:
-            updateState(for: .fetchingToDos)
-            toDoService.readToDos()
-                .subscribe(
-                    onSuccess: { (toDos) in
-                        self.updateState(for: .fetchedToDos(toDos))
-                },
-                    onError: { (error) in
-                        self.updateState(for: .error)
-                })
-                .disposed(by: bag)
-            
-        case .searchToDos(searchText: let searchText):
-            updateState(for: .searchText(searchText))
-            
-        case .addToDo:
-            fatalError()
-            
-        case .showDetail(let toDo):
-            fatalError()
-            
-        default:
-            fatalError()
-        }
-    }
-    
-    
-    private func updateState(for change: ToDoViewChange) {
-        let newState = reduce(state: stateVariable.value, for: change)
-        stateVariable.value = newState
-    }
-    
-    private func reduce(state: ToDoListState, for change: ToDoViewChange) -> ToDoListState {
-        var reduced = stateVariable.value
-        switch change {
-        case .fetchingToDos:
-            reduced.screenState = .loading
-        case .fetchedToDos(let toDos):
-            reduced.toDos = toDos
-            reduced.screenState = .toDos
-        case .error:
-            reduced.screenState = .error
-        case .searchText(let searchText):
-            reduced.searchText = searchText
-        }
-        return reduced
-    }
+typealias ToDoListStore = Store<ToDoListState, ToDoListIntent, ToDoListChange>
 
-    private enum ToDoViewChange {
-        case fetchingToDos
-        case fetchedToDos([ToDo])
-        case error
-        case searchText(String?)
+func createToDoListStore() -> ToDoListStore {
+    
+    let initialState: ToDoListState = ToDoListState(toDos: [], screenState: .toDos, searchText: nil)
+    
+    let reduceIntent: ToDoListStore.IntentReducer = { (intent, getState) -> Observable<ToDoListChange> in
+//        switch intent {
+//        case .loadToDos:
+//            updateState(for: .fetchingToDos)
+//            toDoService.readToDos()
+//                .subscribe(
+//                    onSuccess: { (toDos) in
+//                        self.updateState(for: .fetchedToDos(toDos))
+//                },
+//                    onError: { (error) in
+//                        self.updateState(for: .error)
+//                })
+//                .disposed(by: bag)
+//
+//        case .searchToDos(searchText: let searchText):
+//            updateState(for: .searchText(searchText))
+//
+//        case .addToDo:
+//            fatalError()
+//
+//        case .showDetail(let toDo):
+//            fatalError()
+//
+//        default:
+//            fatalError()
+//        }
+        fatalError()
     }
+    
+    let reduceChange: ToDoListStore.ChangeReducer = { (change, getState) -> ToDoListState in
+//        var reduced = stateVariable.value
+//        switch change {
+//        case .fetchingToDos:
+//            reduced.screenState = .loading
+//        case .fetchedToDos(let toDos):
+//            reduced.toDos = toDos
+//            reduced.screenState = .toDos
+//        case .error:
+//            reduced.screenState = .error
+//        case .searchText(let searchText):
+//            reduced.searchText = searchText
+//        }
+//        return reduced
+        fatalError()
+    }
+    
+    return ToDoListStore(state: initialState, reduceIntent: reduceIntent, reduceChange: reduceChange)
     
 }
