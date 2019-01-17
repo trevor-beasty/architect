@@ -236,7 +236,9 @@ class ToDoCell: UITableViewCell {
         titleLabel.text = toDo.title
         descriptionLabel.text = toDo.description
         completedLabel.text = toDo.isCompleted ? "Completed" : "Incomplete"
-        switchControl.isOn = toDo.isCompleted
+        if switchControl.isOn != toDo.isCompleted {
+            switchControl.setOn(toDo.isCompleted, animated: false)
+        }
         self.toDo = toDo
     }
     
