@@ -93,6 +93,7 @@ class ToDoListViewController: UIViewController {
             .map({ $0.displayToDos })
             .bind(to: table.rx.items(cellIdentifier: "ToDoCell", cellType: ToDoCell.self)) { row, toDo, cell in
                 cell.configure(toDo: toDo)
+                cell.intentSubject = self.intentSubject
             }
             .disposed(by: bag)
         
@@ -176,9 +177,13 @@ extension ToDoListViewController {
 
 class ToDoCell: UITableViewCell {
     
+    var intentSubject: PublishSubject<ToDoListIntent>!
+    private var toDo: ToDo?
+    
     private let titleLabel = UILabel()
     private let descriptionLabel = UILabel()
     private let completedLabel = UILabel()
+    private let switchControl = UISwitch()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -188,19 +193,36 @@ class ToDoCell: UITableViewCell {
     required init?(coder aDecoder: NSCoder) { fatalError() }
     
     private func setUp() {
-        [titleLabel, descriptionLabel, completedLabel].forEach({
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            contentView.addSubview($0)
-        })
-        NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
-            titleLabel.leftAnchor.constraint(equalTo: contentView.leftAnchor),
-            descriptionLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            descriptionLabel.leftAnchor.constraint(equalTo: contentView.leftAnchor),
-            completedLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            completedLabel.rightAnchor.constraint(equalTo: contentView.rightAnchor),
-            contentView.heightAnchor.constraint(equalToConstant: 100)
-            ])
+        
+        func setUpConstraints() {
+            [titleLabel, descriptionLabel, completedLabel, switchControl].forEach({
+                $0.translatesAutoresizingMaskIntoConstraints = false
+                contentView.addSubview($0)
+            })
+            NSLayoutConstraint.activate([
+                titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
+                titleLabel.leftAnchor.constraint(equalTo: contentView.leftAnchor),
+                descriptionLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+                descriptionLabel.leftAnchor.constraint(equalTo: contentView.leftAnchor),
+                completedLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+                completedLabel.rightAnchor.constraint(equalTo: contentView.rightAnchor),
+                contentView.heightAnchor.constraint(equalToConstant: 100),
+                switchControl.rightAnchor.constraint(equalTo: contentView.rightAnchor),
+                switchControl.bottomAnchor.constraint(equalTo: completedLabel.topAnchor)
+                ])
+        }
+        
+        func setUpSwitchControl() {
+            switchControl.addTarget(self, action: #selector(switchControlValueDidChange), for: .valueChanged)
+        }
+        
+        setUpConstraints()
+        setUpSwitchControl()
+    }
+    
+    @objc private func switchControlValueDidChange() {
+        guard let toDo = toDo else { return }
+        intentSubject.onNext(.editToDo(toDo, isCompleted: switchControl.isOn))
     }
     
     override func prepareForReuse() {
@@ -214,6 +236,8 @@ class ToDoCell: UITableViewCell {
         titleLabel.text = toDo.title
         descriptionLabel.text = toDo.description
         completedLabel.text = toDo.isCompleted ? "Completed" : "Incomplete"
+        switchControl.isOn = toDo.isCompleted
+        self.toDo = toDo
     }
     
 }

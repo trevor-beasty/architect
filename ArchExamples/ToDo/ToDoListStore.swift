@@ -126,6 +126,7 @@ func createToDoListStore() -> ToDoListStore {
         case .updateToDo(let toDo):
             guard let matchingIndex = state.toDos.firstIndex(where: { $0.id == toDo.id }) else { break }
             state.toDos[matchingIndex] = toDo
+            state.screenState = .toDos
         }
         return state
     }
