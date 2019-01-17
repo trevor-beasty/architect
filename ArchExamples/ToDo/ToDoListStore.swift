@@ -36,6 +36,10 @@ enum ToDoListChange: Equatable {
     case showToDos
 }
 
+enum ToDoListOutput: Equatable {
+    case showToDoDetail(id: String)
+}
+
 struct ToDoListState: Equatable {
     var toDos: [ToDo]
     var screenState: ScreenState
@@ -71,7 +75,7 @@ func constructToDoModule() -> UIViewController {
     return viewController
 }
 
-typealias ToDoListStore = Store<ToDoListState, ToDoListIntent, ToDoListChange>
+typealias ToDoListStore = Store<ToDoListState, ToDoListIntent, ToDoListChange, ToDoListOutput>
 
 func createToDoListStore() -> ToDoListStore {
     
@@ -145,6 +149,15 @@ func createToDoListStore() -> ToDoListStore {
         return state
     }
     
-    return ToDoListStore(state: initialState, reduceIntent: reduceIntent, reduceChange: reduceChange)
+    let outputForIntent: ToDoListStore.IntentOutputReducer = { (intent, getState) -> ToDoListOutput? in
+        switch intent {
+        case .showDetail(let toDo):
+            return .showToDoDetail(id: toDo.id)
+        default:
+            return nil
+        }
+    }
+    
+    return ToDoListStore(state: initialState, reduceIntent: reduceIntent, reduceChange: reduceChange, outputForIntent: outputForIntent)
     
 }
