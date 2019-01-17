@@ -22,13 +22,15 @@ enum ToDoListIntent: Equatable {
     case addToDo
     case showDetail(ToDo)
     case searchToDos(searchText: String?)
+    case editToDo(ToDo, isCompleted: Bool)
 }
 
 enum ToDoListChange: Equatable {
-    case fetchingToDos
-    case fetchedToDos([ToDo])
+    case showLoading
+    case showToDos([ToDo])
     case error
     case searchToDos(searchText: String?)
+    case updateToDo(ToDo)
 }
 
 struct ToDoListState: Equatable {
@@ -79,10 +81,10 @@ func createToDoListStore() -> ToDoListStore {
         case .loadToDos:
             return toDoService.readToDos().asObservable()
                 .map({ (toDos: [ToDo]) -> ToDoListChange in
-                    ToDoListChange.fetchedToDos(toDos)
+                    ToDoListChange.showToDos(toDos)
                 })
                 .catchErrorJustReturn(.error)
-                .startWith(.fetchingToDos)
+                .startWith(.showLoading)
             
         case .searchToDos(searchText: let searchText):
             return Observable.just(.searchToDos(searchText: searchText))
@@ -92,26 +94,40 @@ func createToDoListStore() -> ToDoListStore {
 
         case .showDetail(let toDo):
             fatalError()
+            
+        case let .editToDo(toDo, isCompleted: isCompleted):
+            var updated = toDo
+            updated.isCompleted = isCompleted
+            return toDoService.updateToDo(toDo: updated).asObservable()
+                .map({ (toDo: ToDo) -> ToDoListChange in
+                    return .updateToDo(toDo)
+                })
+                .catchErrorJustReturn(.error)
+                .startWith(.showLoading)
         }
     }
     
     let reduceChange: ToDoListStore.ChangeReducer = { (change, getState) -> ToDoListState in
-        var newState = getState()
+        var state = getState()
         switch change {
-        case .fetchingToDos:
-            newState.screenState = .loading
+        case .showLoading:
+            state.screenState = .loading
             
-        case .fetchedToDos(let toDos):
-            newState.toDos = toDos
-            newState.screenState = .toDos
+        case .showToDos(let toDos):
+            state.toDos = toDos
+            state.screenState = .toDos
             
         case .error:
-            newState.screenState = .error
+            state.screenState = .error
             
         case .searchToDos(searchText: let searchText):
-            newState.searchText = searchText
+            state.searchText = searchText
+            
+        case .updateToDo(let toDo):
+            guard let matchingIndex = state.toDos.firstIndex(where: { $0.id == toDo.id }) else { break }
+            state.toDos[matchingIndex] = toDo
         }
-        return newState
+        return state
     }
     
     return ToDoListStore(state: initialState, reduceIntent: reduceIntent, reduceChange: reduceChange)

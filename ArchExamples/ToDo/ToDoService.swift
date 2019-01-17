@@ -27,18 +27,14 @@ class ToDoService {
         return delayedSingle({ return Result<ToDo>.success(newToDo) })
     }
     
-    func updateToDo(id: String, title: String? = nil, description: String? = nil, isCompleted: Bool? = nil) -> Single<ToDo> {
+    func updateToDo(toDo: ToDo) -> Single<ToDo> {
         let result: () -> Result<ToDo> = {
-            if let existingIndex = self.toDos.firstIndex(where: { $0.id == id }) {
-                var toDo = self.toDos[existingIndex]
-                if let title = title { toDo.title = title }
-                if let description = description { toDo.description = description }
-                if let isCompleted = isCompleted { toDo.isCompleted = isCompleted }
-                self.toDos[existingIndex] = toDo
+            if let matchingIndex = self.toDos.firstIndex(where: { $0.id == toDo.id }) {
+                self.toDos[matchingIndex] = toDo
                 return .success(toDo)
             }
             else {
-                return .failure(ServiceError.toDoDoesNotExist(id: id))
+                return .failure(ServiceError.toDoDoesNotExist(id: toDo.id))
             }
         }
         return delayedSingle(result)
