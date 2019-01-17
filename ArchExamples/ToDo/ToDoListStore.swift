@@ -23,6 +23,7 @@ enum ToDoListIntent: Equatable {
     case showDetail(ToDo)
     case searchToDos(searchText: String?)
     case editToDo(ToDo, isCompleted: Bool)
+    case dismissError
 }
 
 enum ToDoListChange: Equatable {
@@ -108,6 +109,9 @@ func createToDoListStore() -> ToDoListStore {
                 })
                 .catchErrorJustReturn(.revertToState(errorState))
                 .startWith(.updateToDo(updated), .showLoading)
+            
+        case .dismissError:
+            return Observable<ToDoListChange>.just(.showToDos)
         }
     }
     

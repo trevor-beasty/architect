@@ -155,6 +155,8 @@ class ToDoListViewController: UIViewController {
             newScreenState = .loading(activityIndicator: activityIndicator)
         case .error:
             let alertController = UIAlertController(title: "Error", message: "Probably a backend issue", preferredStyle: .alert)
+            let okAction = UIAlertAction(title: "OK", style: .default, handler: { _ in self.intentSubject.onNext(.dismissError) })
+            alertController.addAction(okAction)
             present(alertController, animated: true, completion: nil)
             newScreenState = .error(alertController)
         case .toDos:

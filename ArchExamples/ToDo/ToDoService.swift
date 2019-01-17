@@ -29,7 +29,7 @@ class ToDoService {
     
     func updateToDo(toDo: ToDo) -> Single<ToDo> {
         let result: () -> Result<ToDo> = {
-            if let matchingIndex = self.toDos.firstIndex(where: { $0.id == toDo.id }) {
+            if Bool.randTrue(0.5), let matchingIndex = self.toDos.firstIndex(where: { $0.id == toDo.id }) {
                 self.toDos[matchingIndex] = toDo
                 return .success(toDo)
             }
@@ -69,4 +69,10 @@ class ToDoService {
     
 }
 
-
+extension Bool {
+ 
+    static func randTrue(_ rate: Double) -> Bool {
+        return (Double(arc4random()) / 0xFFFFFFFF) < rate
+    }
+    
+}
