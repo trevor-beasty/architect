@@ -18,6 +18,14 @@ protocol ReducerType: AnyObject {
     func reduceIntent(_ intent: Intent, getState: () -> State, emitChange: @escaping (Change) -> Void)
 }
 
+protocol ObservableType: AnyObject {
+    associatedtype Element
+    
+    typealias E = Element
+    
+    func observe(_ observer: @escaping (E) -> Void)
+}
+
 class BaseReducer<State, Intent, Change>: ReducerType {
     
     let _handler: ReduceIntent
@@ -53,13 +61,16 @@ class FlatMapLatestReducer<State, Intent, Change>: ReducerType {
                 else { return }
             emitChange(change)
         })
-        flagThreshold += 1
     }
     
 }
 
-class NonRxStore<State, Intent, Change, IntentReducer: ReducerType>
-where IntentReducer.State == State, IntentReducer.Intent == Intent, IntentReducer.Change == Change {
+class NonRxStore<State, Intent, Change, IntentReducer: ReducerType>: ObservableType
+where IntentReducer.State == State, IntentReducer.Intent == Intent, IntentReducer.Change == Change
+{
+    
+    typealias IntentReducer = FlatMapLatestReducer<State, Intent, Change>
+    typealias ChangeReducer = (Change, () -> State) -> State
     
     private(set) var state: State {
         didSet {
@@ -71,14 +82,14 @@ where IntentReducer.State == State, IntentReducer.Intent == Intent, IntentReduce
     }
     private var observers: [(State) -> Void] = []
     
-    let intentReducer: IntentReducer
-    let reduceChange: ChangeReducer
+    private let intentReducer: IntentReducer
+    private let reduceChange: ChangeReducer
     
-    typealias ChangeReducer = (Change, () -> State) -> State
+    private let queue = DispatchQueue(label: "ReduceIntent", qos: DispatchQoS(qosClass: .userInitiated, relativePriority: 0))
     
-    init(initialState: State, intentReducer: IntentReducer, reduceChange: @escaping ChangeReducer) {
+    init(initialState: State, reduceIntent: @escaping IntentReducer.ReduceIntent, reduceChange: @escaping ChangeReducer) {
         self.state = initialState
-        self.intentReducer = intentReducer
+        self.intentReducer = IntentReducer(reduceIntent)
         self.reduceChange = reduceChange
     }
     
@@ -88,7 +99,14 @@ where IntentReducer.State == State, IntentReducer.Intent == Intent, IntentReduce
     }
     
     func dispatchIntent(_ intent: Intent) {
-        intentReducer.reduceIntent(intent, getState: { return self.state }, emitChange: { self.handleChange($0) })
+        queue.async { [weak self] in
+            guard let strongSelf = self else { return }
+            strongSelf.intentReducer.reduceIntent(
+                intent,
+                getState: { return strongSelf.state },
+                emitChange: { strongSelf.handleChange($0) }
+            )
+        }
     }
     
     private func handleChange(_ change: Change) {
