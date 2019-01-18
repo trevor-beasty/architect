@@ -9,9 +9,21 @@
 import XCTest
 @testable import ArchExamples
 
-struct MockState: Equatable { }
-struct MockIntent: Equatable { }
-struct MockChange: Equatable { }
+enum MockState: Equatable {
+    case A
+    case B
+    case C
+}
+enum MockIntent: Equatable {
+    case A
+    case B
+    case C
+}
+enum MockChange: Equatable {
+    case A
+    case B
+    case C
+}
 
 class MockReducer<State, Intent, Change>: ReducerType {
 
@@ -46,24 +58,76 @@ class NonRxStoreTests: XCTestCase {
         subject = nil
         super.tearDown()
     }
-
-    func test_GivenSingleSyncChange_IntentEvent_EmitsState() {
+    
+    func test_Observing_EmitsInitialState() {
         // given
         setUpWith(
-            initialState: MockState(),
-            reduceIntent: { _, _, emitChange in emitChange(MockChange()) },
-            changeReducer: { _, _ in return MockState() })
+            initialState: MockState.A,
+            reduceIntent: { _, _, emitChange in return emitChange(MockChange.A) },
+            changeReducer: { _, _ in return MockState.A }
+        )
+        clearStateSequence()
         
         // when
-        subject.dispatchIntent(MockIntent())
-        let queueExhausted = expectation(description: "queue exhausted")
-        queue.async {
-            queueExhausted.fulfill()
-        }
-        waitForExpectations(timeout: 1.0, handler: nil)
+        subject.dispatchIntent(MockIntent.A)
+        exhaustQueue()
         
         // then
-        XCTAssertEqual(stateSequence, [MockState()])
+        XCTAssertEqual(stateSequence, [MockState.A])
+    }
+
+    func test_GivenSingleChange_IntentEvent_EmitsState() {
+        // given
+        setUpWith(
+            initialState: MockState.A,
+            reduceIntent: { _, _, emitChange in emitChange(MockChange.A) },
+            changeReducer: { _, _ in return MockState.A }
+        )
+        clearStateSequence()
+        
+        // when
+        subject.dispatchIntent(MockIntent.A)
+        exhaustQueue()
+        
+        // then
+        XCTAssertEqual(stateSequence, [MockState.A])
+    }
+    
+    func test_GivenImmediateAndDelayedChange_IntentEvent_EmitsState() {
+        // given
+        setUpWith(
+            initialState: MockState.A,
+            reduceIntent: { _, _, emitChange in
+                emitChange(MockChange.A)
+                self.queue.asyncAfter(deadline: .now() + 0.3, execute: { emitChange(MockChange.A) })
+        },
+            changeReducer: { _, _ in return MockState.A }
+        )
+        clearStateSequence()
+        
+        // when
+        subject.dispatchIntent(MockIntent.A)
+        exhaustQueue(maxDelay: 0.3)
+
+        
+        // then
+        XCTAssertEqual(stateSequence, [MockState.A, MockState.A])
+    }
+    
+    private func exhaustQueue(_ timeout: Double = 0.001) {
+        let queueExhausted = expectation(description: "queue exhausted")
+        queue.asyncAfter(deadline: .now() + timeout) {
+            queueExhausted.fulfill()
+        }
+        waitForExpectations(timeout: 1.0 + timeout, handler: nil)
+    }
+    
+    private func exhaustQueue(maxDelay: Double) {
+        exhaustQueue(maxDelay + 0.1)
+    }
+    
+    private func clearStateSequence() {
+        stateSequence = []
     }
 
 }
