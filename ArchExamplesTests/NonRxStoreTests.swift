@@ -53,8 +53,8 @@ class NonRxStoreTests: XCTestCase {
     
     private func setUpWith(
         initialState: IntentReducer.State,
-        reduceIntent: @escaping IntentReducer.ReduceIntent,
-        changeReducer: @escaping ChangeReducer
+        reduceIntent: @escaping IntentReducer.ReduceIntent = { _, _, _ in return },
+        changeReducer: @escaping ChangeReducer = { _, _ in return MockState.A }
         )
     {
         queue = DispatchQueue.main
@@ -242,6 +242,74 @@ class NonRxStoreTests: XCTestCase {
     }
     
     // MARK: Module Hooks
+    
+    func test_GivenModuleHook_WhenIntent_ModuleHookExecuted() {
+        // given
+        setUpWith(initialState: MockState.A)
+        
+        let moduleHook: ModuleHook = { intent, state, _ in
+            // then
+            XCTAssertEqual(intent, MockIntent.A)
+            XCTAssertEqual(state, MockState.A)
+        }
+        
+        // when
+        subject.hookIn(moduleHook)
+        subject.dispatchIntent(MockIntent.A)
+        exhaustQueue()
+    }
+    
+    func test_GivenMappingAndModuleHook_WhenIntent_ModuleHookImmediateChangeExecuted() {
+        // given
+        setUpWith(
+            initialState: MockState.A,
+            reduceIntent: { _, _, _ in return },
+            changeReducer: { change, state in
+                switch change {
+                case .A:
+                    return MockState.B
+                default:
+                    fatalError()
+                }
+        })
+        clearStateSequence()
+        
+        let moduleHook: ModuleHook = { _, _, emitChange in emitChange(MockChange.A) }
+        
+        // when
+        subject.hookIn(moduleHook)
+        subject.dispatchIntent(MockIntent.A)
+        exhaustQueue()
+        
+        // then
+        XCTAssertEqual(stateSequence, [MockState.B])
+    }
+    
+    func test_GivenMappingAndModuleHook_WhenIntent_ModuleHookDelayedChangeExecuted() {
+        // given
+        setUpWith(
+            initialState: MockState.A,
+            reduceIntent: { _, _, _ in return },
+            changeReducer: { change, state in
+                switch change {
+                case .A:
+                    return MockState.B
+                default:
+                    fatalError()
+                }
+        })
+        clearStateSequence()
+        
+        let moduleHook: ModuleHook = { _, _, emitChange in self.emitDelayedChange({ emitChange(MockChange.A) }, delay: 0.3) }
+        
+        // when
+        subject.hookIn(moduleHook)
+        subject.dispatchIntent(MockIntent.A)
+        exhaustQueue(maxDelay: 0.3)
+        
+        // then
+        XCTAssertEqual(stateSequence, [MockState.B])
+    }
 
 }
 
