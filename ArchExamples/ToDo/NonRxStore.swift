@@ -13,7 +13,49 @@ protocol ReducerType: AnyObject {
     associatedtype Intent
     associatedtype Change
     
+    typealias ReduceIntent = (Intent, () -> State, @escaping (Change) -> Void) -> Void
+    
     func reduceIntent(_ intent: Intent, getState: () -> State, emitChange: @escaping (Change) -> Void)
+}
+
+class BaseReducer<State, Intent, Change>: ReducerType {
+    
+    let _handler: ReduceIntent
+    
+    init(_ handler: @escaping ReduceIntent) {
+        self._handler = handler
+    }
+    
+    func reduceIntent(_ intent: Intent, getState: () -> State, emitChange: @escaping (Change) -> Void) {
+        _handler(intent, getState, emitChange)
+    }
+    
+}
+
+class FlatMapLatestReducer<State, Intent, Change>: ReducerType {
+    
+    private var flagThreshold = 0
+    
+    private let reducer: BaseReducer<State, Intent, Change>
+    
+    init(_ handler: @escaping ReduceIntent) {
+        self.reducer = BaseReducer<State, Intent, Change>(handler)
+    }
+    
+    func reduceIntent(_ intent: Intent, getState: () -> State, emitChange: @escaping (Change) -> Void) {
+        // If this function has been invoked since the last invocation, do not send changes emitted from that reduction.
+        flagThreshold += 1
+        let flag = flagThreshold
+        reducer.reduceIntent(intent, getState: getState, emitChange: { [weak self] change in
+            guard
+                let strongSelf = self,
+                flag == strongSelf.flagThreshold
+                else { return }
+            emitChange(change)
+        })
+        flagThreshold += 1
+    }
+    
 }
 
 class NonRxStore<State, Intent, Change, IntentReducer: ReducerType>
