@@ -13,6 +13,8 @@
 		E29E062021EFDA390044C5A1 /* ToDoDetailStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E29E061F21EFDA390044C5A1 /* ToDoDetailStore.swift */; };
 		E29E062221EFDBD50044C5A1 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = E29E062121EFDBD50044C5A1 /* Store.swift */; };
 		E29E062421F171B60044C5A1 /* NonRxStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E29E062321F171B60044C5A1 /* NonRxStore.swift */; };
+		E29E062C21F210F20044C5A1 /* ArchExamplesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E29E062B21F210F20044C5A1 /* ArchExamplesTests.swift */; };
+		E29E063421F2110A0044C5A1 /* NonRxStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E29E063321F2110A0044C5A1 /* NonRxStoreTests.swift */; };
 		E2D4B36821DA87C7000C7B10 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2D4B36721DA87C7000C7B10 /* AppDelegate.swift */; };
 		E2D4B36A21DA87C7000C7B10 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2D4B36921DA87C7000C7B10 /* ViewController.swift */; };
 		E2D4B36D21DA87C7000C7B10 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E2D4B36B21DA87C7000C7B10 /* Main.storyboard */; };
@@ -22,6 +24,16 @@
 		E2D4B37D21DA89B3000C7B10 /* ToDoListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2D4B37C21DA89B3000C7B10 /* ToDoListViewController.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		E29E062E21F210F20044C5A1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E2D4B35C21DA87C7000C7B10 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E2D4B36321DA87C7000C7B10;
+			remoteInfo = ArchExamples;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		2F43F54FB20A58CE021092D0 /* Pods_ArchExamples.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ArchExamples.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB1958D655DE62AF449C1C9F /* Pods-ArchExamples.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ArchExamples.debug.xcconfig"; path = "Pods/Target Support Files/Pods-ArchExamples/Pods-ArchExamples.debug.xcconfig"; sourceTree = "<group>"; };
@@ -30,6 +42,10 @@
 		E29E061F21EFDA390044C5A1 /* ToDoDetailStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToDoDetailStore.swift; sourceTree = "<group>"; };
 		E29E062121EFDBD50044C5A1 /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 		E29E062321F171B60044C5A1 /* NonRxStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NonRxStore.swift; sourceTree = "<group>"; };
+		E29E062921F210F20044C5A1 /* ArchExamplesTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ArchExamplesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E29E062B21F210F20044C5A1 /* ArchExamplesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchExamplesTests.swift; sourceTree = "<group>"; };
+		E29E062D21F210F20044C5A1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E29E063321F2110A0044C5A1 /* NonRxStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NonRxStoreTests.swift; sourceTree = "<group>"; };
 		E2D4B36421DA87C7000C7B10 /* ArchExamples.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ArchExamples.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2D4B36721DA87C7000C7B10 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E2D4B36921DA87C7000C7B10 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -43,6 +59,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		E29E062621F210F20044C5A1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E2D4B36121DA87C7000C7B10 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -71,10 +94,21 @@
 			name = Pods;
 			sourceTree = "<group>";
 		};
+		E29E062A21F210F20044C5A1 /* ArchExamplesTests */ = {
+			isa = PBXGroup;
+			children = (
+				E29E062B21F210F20044C5A1 /* ArchExamplesTests.swift */,
+				E29E062D21F210F20044C5A1 /* Info.plist */,
+				E29E063321F2110A0044C5A1 /* NonRxStoreTests.swift */,
+			);
+			path = ArchExamplesTests;
+			sourceTree = "<group>";
+		};
 		E2D4B35B21DA87C7000C7B10 = {
 			isa = PBXGroup;
 			children = (
 				E2D4B36621DA87C7000C7B10 /* ArchExamples */,
+				E29E062A21F210F20044C5A1 /* ArchExamplesTests */,
 				E2D4B36521DA87C7000C7B10 /* Products */,
 				BD06AD153559780532A527D7 /* Pods */,
 				9488DEFBA141C30DE932AEA4 /* Frameworks */,
@@ -85,6 +119,7 @@
 			isa = PBXGroup;
 			children = (
 				E2D4B36421DA87C7000C7B10 /* ArchExamples.app */,
+				E29E062921F210F20044C5A1 /* ArchExamplesTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -120,6 +155,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		E29E062821F210F20044C5A1 /* ArchExamplesTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E29E063021F210F20044C5A1 /* Build configuration list for PBXNativeTarget "ArchExamplesTests" */;
+			buildPhases = (
+				E29E062521F210F20044C5A1 /* Sources */,
+				E29E062621F210F20044C5A1 /* Frameworks */,
+				E29E062721F210F20044C5A1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E29E062F21F210F20044C5A1 /* PBXTargetDependency */,
+			);
+			name = ArchExamplesTests;
+			productName = ArchExamplesTests;
+			productReference = E29E062921F210F20044C5A1 /* ArchExamplesTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		E2D4B36321DA87C7000C7B10 /* ArchExamples */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = E2D4B37621DA87C9000C7B10 /* Build configuration list for PBXNativeTarget "ArchExamples" */;
@@ -149,6 +202,10 @@
 				LastUpgradeCheck = 1010;
 				ORGANIZATIONNAME = "Trevor Beasty";
 				TargetAttributes = {
+					E29E062821F210F20044C5A1 = {
+						CreatedOnToolsVersion = 10.1;
+						TestTargetID = E2D4B36321DA87C7000C7B10;
+					};
 					E2D4B36321DA87C7000C7B10 = {
 						CreatedOnToolsVersion = 10.1;
 					};
@@ -168,11 +225,19 @@
 			projectRoot = "";
 			targets = (
 				E2D4B36321DA87C7000C7B10 /* ArchExamples */,
+				E29E062821F210F20044C5A1 /* ArchExamplesTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		E29E062721F210F20044C5A1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E2D4B36221DA87C7000C7B10 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -229,6 +294,15 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		E29E062521F210F20044C5A1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E29E062C21F210F20044C5A1 /* ArchExamplesTests.swift in Sources */,
+				E29E063421F2110A0044C5A1 /* NonRxStoreTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E2D4B36021DA87C7000C7B10 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -246,6 +320,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E29E062F21F210F20044C5A1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E2D4B36321DA87C7000C7B10 /* ArchExamples */;
+			targetProxy = E29E062E21F210F20044C5A1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		E2D4B36B21DA87C7000C7B10 /* Main.storyboard */ = {
@@ -267,6 +349,44 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		E29E063121F210F20044C5A1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = ArchExamplesTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = WW.ArchExamplesTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ArchExamples.app/ArchExamples";
+			};
+			name = Debug;
+		};
+		E29E063221F210F20044C5A1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = ArchExamplesTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = WW.ArchExamplesTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ArchExamples.app/ArchExamples";
+			};
+			name = Release;
+		};
 		E2D4B37421DA87C9000C7B10 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -422,6 +542,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		E29E063021F210F20044C5A1 /* Build configuration list for PBXNativeTarget "ArchExamplesTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E29E063121F210F20044C5A1 /* Debug */,
+				E29E063221F210F20044C5A1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		E2D4B35F21DA87C7000C7B10 /* Build configuration list for PBXProject "ArchExamples" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
