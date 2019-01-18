@@ -66,10 +66,8 @@ class NonRxStoreTests: XCTestCase {
             reduceIntent: { _, _, emitChange in return emitChange(MockChange.A) },
             changeReducer: { _, _ in return MockState.A }
         )
-        clearStateSequence()
         
         // when
-        subject.dispatchIntent(MockIntent.A)
         exhaustQueue()
         
         // then

@@ -26,20 +26,6 @@ protocol ObservableType: AnyObject {
     func observe(_ observer: @escaping (E) -> Void)
 }
 
-class BaseReducer<State, Intent, Change>: ReducerType {
-    
-    private let _handler: ReduceIntent
-    
-    init(_ handler: @escaping ReduceIntent) {
-        self._handler = handler
-    }
-    
-    func reduceIntent(_ intent: Intent, getState: () -> State, emitChange: @escaping (Change) -> Void) {
-        _handler(intent, getState, emitChange)
-    }
-    
-}
-
 class FlatMapLatestReducer<Reducer: ReducerType>: ReducerType {
     typealias State = Reducer.State
     typealias Intent = Reducer.Intent
