@@ -24,6 +24,11 @@ enum MockChange: Equatable {
     case B
     case C
 }
+enum MockOutput: Equatable {
+    case A
+    case B
+    case C
+}
 
 class MockReducer<State, Intent, Change>: ReducerType {
 
@@ -42,16 +47,23 @@ class NonRxStoreTests: XCTestCase {
     var stateSequence: [IntentReducer.State]!
 
     typealias IntentReducer = MockReducer<MockState, MockIntent, MockChange>
-    typealias Store = NonRxStore<IntentReducer>
+    typealias Store = NonRxStore<IntentReducer, MockOutput>
     typealias ChangeReducer = Store.ChangeReducer
+    typealias OutputReducer = Store.OutputReducer
 
-    private func setUpWith(initialState: IntentReducer.State, reduceIntent: @escaping IntentReducer.ReduceIntent, changeReducer: @escaping ChangeReducer) {
+    private func setUpWith(
+        initialState: IntentReducer.State,
+        reduceIntent: @escaping IntentReducer.ReduceIntent,
+        changeReducer: @escaping ChangeReducer,
+        outputReducer: @escaping OutputReducer = { _, _ in return nil }
+        )
+    {
         queue = DispatchQueue.main
         stateSequence = []
         let intentReducer = MockReducer<MockState, MockIntent, MockChange>()
         intentReducer._handler = reduceIntent
-        subject = Store(initialState: initialState, reducer: intentReducer, reduceChange: changeReducer, stateQueue: queue)
-        subject.observe({ state in self.stateSequence.append(state) })
+        subject = Store(initialState: initialState, reducer: intentReducer, reduceChange: changeReducer, reduceOutput: outputReducer, stateQueue: queue)
+        subject.observeState({ state in self.stateSequence.append(state) })
     }
 
     override func tearDown() {

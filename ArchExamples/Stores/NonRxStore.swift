@@ -29,14 +29,6 @@ protocol ReducerType: AnyObject {
     func reduceIntent(_ intent: Intent, getState: () -> State, emitChange: @escaping (Change) -> Void)
 }
 
-protocol ObservableType: AnyObject {
-    associatedtype Element
-    
-    typealias E = Element
-    
-    func observe(_ observer: @escaping (E) -> Void)
-}
-
 class FlatMapLatestReducer<Reducer: ReducerType>: ReducerType {
     typealias State = Reducer.State
     typealias Intent = Reducer.Intent
@@ -65,12 +57,13 @@ class FlatMapLatestReducer<Reducer: ReducerType>: ReducerType {
     
 }
 
-class NonRxStore<IntentReducer: ReducerType>: ObservableType {
+class NonRxStore<IntentReducer: ReducerType, Output> {
     typealias State = IntentReducer.State
     typealias Intent = IntentReducer.Intent
     typealias Change = IntentReducer.Change
     
     typealias ChangeReducer = (Change, () -> State) -> State
+    typealias OutputReducer = (Intent, () -> State) -> Output?
     
     private var state: State {
         didSet {
@@ -79,14 +72,16 @@ class NonRxStore<IntentReducer: ReducerType>: ObservableType {
             let _state = state
             stateQueue.async { [weak self] in
                 guard let strongSelf = self else { return }
-                strongSelf.observers.forEach({ $0(_state) })
+                strongSelf.stateObservers.forEach({ $0(_state) })
             }
         }
     }
-    private var observers: [(State) -> Void] = []
+    private var stateObservers: [(State) -> Void] = []
+    private var outputObservers: [(Output) -> Void] = []
     
     private let intentReducer: FlatMapLatestReducer<IntentReducer>
     private let reduceChange: ChangeReducer
+    private let reduceOutput: OutputReducer
     
     private let stateQueue: DispatchQueue
     private let intentQueue = DispatchQueue(label: "ReduceIntent", qos: DispatchQoS(qosClass: .userInitiated, relativePriority: 0))
@@ -95,17 +90,19 @@ class NonRxStore<IntentReducer: ReducerType>: ObservableType {
         initialState: State,
         reducer: IntentReducer,
         reduceChange: @escaping ChangeReducer,
+        reduceOutput: @escaping OutputReducer,
         stateQueue: DispatchQueue = DispatchQueue.main
         )
     {
         self.state = initialState
         self.intentReducer = FlatMapLatestReducer<IntentReducer>(reducer)
         self.reduceChange = reduceChange
+        self.reduceOutput = reduceOutput
         self.stateQueue = stateQueue
     }
     
-    func observe(_ observer: @escaping (State) -> Void) {
-        observers.append(observer)
+    func observeState(_ observer: @escaping (State) -> Void) {
+        stateObservers.append(observer)
         observer(state)
     }
     
@@ -113,17 +110,25 @@ class NonRxStore<IntentReducer: ReducerType>: ObservableType {
         // Intent processing is UI agnostic and is thus performed off the main thread.
         intentQueue.async { [weak self] in
             guard let strongSelf = self else { return }
+            
             strongSelf.intentReducer.reduceIntent(
                 intent,
                 getState: { return strongSelf.state },
                 emitChange: { strongSelf.handleChange($0) }
             )
+            
+            
+            
         }
     }
     
     private func handleChange(_ change: Change) {
         let newState = reduceChange(change, { return self.state })
         state = newState
+    }
+    
+    func observeOutput(_ observer: @escaping (Output) -> Void) {
+        outputObservers.append(observer)
     }
     
 }
