@@ -97,7 +97,7 @@ class NonRxStoreTests: XCTestCase {
             initialState: MockState.A,
             reduceIntent: { _, _, emitChange in
                 emitChange(MockChange.A)
-                self.queue.asyncAfter(deadline: .now() + 0.3, execute: { emitChange(MockChange.A) })
+                self.emitDelayedChange({ emitChange(MockChange.A) }, delay: 0.3)
         },
             changeReducer: { _, _ in return MockState.A }
         )
@@ -119,7 +119,7 @@ class NonRxStoreTests: XCTestCase {
             reduceIntent: { intent, _, emitChange in
                 switch intent {
                 case .A:
-                    self.queue.asyncAfter(deadline: .now() + 0.3, execute: { emitChange(MockChange.A) })
+                    self.emitDelayedChange({ emitChange(MockChange.A) }, delay: 0.3)
                 case .B:
                     emitChange(MockChange.B)
                 case .C:
@@ -149,7 +149,7 @@ class NonRxStoreTests: XCTestCase {
         XCTAssertEqual(stateSequence, [MockState.B])
     }
     
-    func test_GivenMapping_WhenIntents_ExpectedStateBehavior() {
+    func test_GivenMapping_WhenImmediateIntents_ExpectedStateBehavior() {
         // given
         setUpWith(
             initialState: MockState.A,
@@ -202,6 +202,13 @@ class NonRxStoreTests: XCTestCase {
     
     private func clearStateSequence() {
         stateSequence = []
+    }
+    
+    private func emitDelayedChange(_ emitChange: @escaping () -> Void, delay: Double) {
+        queue.asyncAfter(
+            deadline: .now() + delay,
+            execute: emitChange
+        )
     }
 
 }
