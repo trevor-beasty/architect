@@ -50,7 +50,7 @@ class NonRxStoreTests: XCTestCase {
         stateSequence = []
         let intentReducer = MockReducer<MockState, MockIntent, MockChange>()
         intentReducer._handler = reduceIntent
-        subject = Store(initialState: initialState, reducer: intentReducer, reduceChange: changeReducer, stateQueue: queue, intentQueue: queue)
+        subject = Store(initialState: initialState, reducer: intentReducer, reduceChange: changeReducer, stateQueue: queue)
         subject.observe({ state in self.stateSequence.append(state) })
     }
 
