@@ -149,6 +149,45 @@ class NonRxStoreTests: XCTestCase {
         XCTAssertEqual(stateSequence, [MockState.B])
     }
     
+    func test_GivenMapping_WhenIntents_ExpectedStateBehavior() {
+        // given
+        setUpWith(
+            initialState: MockState.A,
+            reduceIntent: { intent, getState, emitChange in
+                switch intent {
+                case .A:
+                    XCTAssertEqual(getState(), MockState.A)
+                    emitChange(MockChange.A)
+                case .B:
+                    XCTAssertEqual(getState(), MockState.B)
+                    emitChange(MockChange.B)
+                case .C:
+                    fatalError()
+                }
+                
+        },
+            changeReducer: { change, _ in
+                switch change {
+                case .A:
+                    return MockState.B
+                case .B:
+                    return MockState.C
+                case .C:
+                    fatalError()
+                }
+        })
+        clearStateSequence()
+        
+        // when
+        subject.dispatchIntent(MockIntent.A)
+        subject.dispatchIntent(MockIntent.B)
+        exhaustQueue()
+        
+        
+        // then
+        XCTAssertEqual(stateSequence, [MockState.B, MockState.C])
+    }
+    
     private func exhaustQueue(_ timeout: Double = 0.001) {
         let queueExhausted = expectation(description: "queue exhausted")
         queue.asyncAfter(deadline: .now() + timeout) {

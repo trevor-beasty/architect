@@ -75,9 +75,11 @@ class NonRxStore<IntentReducer: ReducerType>: ObservableType {
     private var state: State {
         didSet {
             // In a UI domain, all observers should be executed on the main thread.
+            // State value must be captured immediately due to threading considerations.
+            let _state = state
             stateQueue.async { [weak self] in
                 guard let strongSelf = self else { return }
-                strongSelf.observers.forEach({ $0(strongSelf.state) })
+                strongSelf.observers.forEach({ $0(_state) })
             }
         }
     }
