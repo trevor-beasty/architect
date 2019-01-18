@@ -77,7 +77,7 @@ class NonRxStore<IntentReducer: ReducerType>: ObservableType {
     
     private(set) var state: State {
         didSet {
-            DispatchQueue.main.async { [weak self] in
+            stateQueue.async { [weak self] in
                 guard let strongSelf = self else { return }
                 strongSelf.observers.forEach({ $0(strongSelf.state) })
             }
@@ -88,12 +88,22 @@ class NonRxStore<IntentReducer: ReducerType>: ObservableType {
     private let intentReducer: FlatMapLatestReducer<IntentReducer>
     private let reduceChange: ChangeReducer
     
-    private let queue = DispatchQueue(label: "ReduceIntent", qos: DispatchQoS(qosClass: .userInitiated, relativePriority: 0))
+    private let stateQueue: DispatchQueue
+    private let intentQueue: DispatchQueue
     
-    init(initialState: State, reducer: IntentReducer, reduceChange: @escaping ChangeReducer) {
+    init(
+        initialState: State,
+        reducer: IntentReducer,
+        reduceChange: @escaping ChangeReducer,
+        stateQueue: DispatchQueue = DispatchQueue.main,
+        intentQueue: DispatchQueue = DispatchQueue(label: "ReduceIntent", qos: DispatchQoS(qosClass: .userInitiated, relativePriority: 0))
+        )
+    {
         self.state = initialState
         self.intentReducer = FlatMapLatestReducer<IntentReducer>(reducer)
         self.reduceChange = reduceChange
+        self.stateQueue = stateQueue
+        self.intentQueue = intentQueue
     }
     
     func observe(_ observer: @escaping (State) -> Void) {
@@ -102,7 +112,7 @@ class NonRxStore<IntentReducer: ReducerType>: ObservableType {
     }
     
     func dispatchIntent(_ intent: Intent) {
-        queue.async { [weak self] in
+        intentQueue.async { [weak self] in
             guard let strongSelf = self else { return }
             strongSelf.intentReducer.reduceIntent(
                 intent,
