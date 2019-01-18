@@ -125,13 +125,13 @@ class NonRxStore<IntentReducer: ReducerType> {
         }
     }
     
+    func hookIn(_ hook: @escaping ModuleHook) {
+        moduleHooks.append(hook)
+    }
+    
     private func handleChange(_ change: Change) {
         let newState = reduceChange(change, { return self.state })
         state = newState
-    }
-    
-    func hookIn(_ hook: @escaping ModuleHook) {
-        moduleHooks.append(hook)
     }
     
 }
