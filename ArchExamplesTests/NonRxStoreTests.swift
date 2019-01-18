@@ -34,8 +34,8 @@ class MockReducer<State, Intent, Change>: ReducerType {
 
     var _handler: ReduceIntent!
 
-    func reduceIntent(_ intent: Intent, getState: () -> State, emitChange: @escaping (Change) -> Void) {
-        _handler(intent, getState, emitChange)
+    func reduceIntent(_ intent: Intent, state: State, emitChange: @escaping (Change) -> Void) {
+        _handler(intent, state, emitChange)
     }
 
 }
@@ -47,22 +47,21 @@ class NonRxStoreTests: XCTestCase {
     var stateSequence: [IntentReducer.State]!
 
     typealias IntentReducer = MockReducer<MockState, MockIntent, MockChange>
-    typealias Store = NonRxStore<IntentReducer, MockOutput>
+    typealias Store = NonRxStore<IntentReducer>
     typealias ChangeReducer = Store.ChangeReducer
-    typealias OutputReducer = Store.OutputReducer
+    typealias ModuleHook = Store.ModuleHook
 
     private func setUpWith(
         initialState: IntentReducer.State,
         reduceIntent: @escaping IntentReducer.ReduceIntent,
-        changeReducer: @escaping ChangeReducer,
-        outputReducer: @escaping OutputReducer = { _, _ in return nil }
+        changeReducer: @escaping ChangeReducer
         )
     {
         queue = DispatchQueue.main
         stateSequence = []
         let intentReducer = MockReducer<MockState, MockIntent, MockChange>()
         intentReducer._handler = reduceIntent
-        subject = Store(initialState: initialState, reducer: intentReducer, reduceChange: changeReducer, reduceOutput: outputReducer, stateQueue: queue)
+        subject = Store(initialState: initialState, reducer: intentReducer, reduceChange: changeReducer, stateQueue: queue)
         subject.observeState({ state in self.stateSequence.append(state) })
     }
 
@@ -165,13 +164,13 @@ class NonRxStoreTests: XCTestCase {
         // given
         setUpWith(
             initialState: MockState.A,
-            reduceIntent: { intent, getState, emitChange in
+            reduceIntent: { intent, state, emitChange in
                 switch intent {
                 case .A:
-                    XCTAssertEqual(getState(), MockState.A)
+                    XCTAssertEqual(state, MockState.A)
                     emitChange(MockChange.A)
                 case .B:
-                    XCTAssertEqual(getState(), MockState.B)
+                    XCTAssertEqual(state, MockState.B)
                     emitChange(MockChange.B)
                 case .C:
                     fatalError()
@@ -204,13 +203,13 @@ class NonRxStoreTests: XCTestCase {
         // given
         setUpWith(
             initialState: MockState.A,
-            reduceIntent: { intent, getState, emitChange in
+            reduceIntent: { intent, state, emitChange in
                 switch intent {
                 case .A:
-                    XCTAssertEqual(getState(), MockState.A)
+                    XCTAssertEqual(state, MockState.A)
                     self.emitDelayedChange({ emitChange(MockChange.A) }, delay: 0.3)
                 case .B:
-                    XCTAssertEqual(getState(), MockState.A)
+                    XCTAssertEqual(state, MockState.A)
                     emitChange(MockChange.B)
                 case .C:
                     fatalError()

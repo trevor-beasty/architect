@@ -19,14 +19,13 @@ protocol ReducerType: AnyObject {
     //     - a simple reduction would immediately emit a change
     //     - a complex reduction would emit a change at some later point
     //     - this api is agnostic to sync / async, all changes are emitted via: @escaping (Change) -> Void
-    //     - in Rx speak, @escaping (Change) -> Void is an 'Observer'
     //
     // Typically a reduction would have a synchronous return value: (A, B) -> C. This is a nuanced 'reduction',
     // which could perhaps be interpreted as 'plural reduction': (A, B, @escaping (C) - > Void) -> Void.
     
-    typealias ReduceIntent = (Intent, () -> State, @escaping (Change) -> Void) -> Void
+    typealias ReduceIntent = (Intent, State, @escaping (Change) -> Void) -> Void
     
-    func reduceIntent(_ intent: Intent, getState: () -> State, emitChange: @escaping (Change) -> Void)
+    func reduceIntent(_ intent: Intent, state: State, emitChange: @escaping (Change) -> Void)
 }
 
 class FlatMapLatestReducer<Reducer: ReducerType>: ReducerType {
@@ -42,11 +41,11 @@ class FlatMapLatestReducer<Reducer: ReducerType>: ReducerType {
         self.reducer = reducer
     }
     
-    func reduceIntent(_ intent: Intent, getState: () -> State, emitChange: @escaping (Change) -> Void) {
+    func reduceIntent(_ intent: Intent, state: State, emitChange: @escaping (Change) -> Void) {
         // Do not emit changes emitted from a prior intent reduction.
         flagThreshold += 1
         let flag = flagThreshold
-        reducer.reduceIntent(intent, getState: getState, emitChange: { [weak self] change in
+        reducer.reduceIntent(intent, state: state, emitChange: { [weak self] change in
             guard
                 let strongSelf = self,
                 flag == strongSelf.flagThreshold
@@ -57,13 +56,13 @@ class FlatMapLatestReducer<Reducer: ReducerType>: ReducerType {
     
 }
 
-class NonRxStore<IntentReducer: ReducerType, Output> {
+class NonRxStore<IntentReducer: ReducerType> {
     typealias State = IntentReducer.State
     typealias Intent = IntentReducer.Intent
     typealias Change = IntentReducer.Change
     
     typealias ChangeReducer = (Change, () -> State) -> State
-    typealias OutputReducer = (Intent, () -> State) -> Output?
+    typealias ModuleHook = (Intent, State, @escaping (Change) -> Void) -> Void
     
     private var state: State {
         didSet {
@@ -77,27 +76,24 @@ class NonRxStore<IntentReducer: ReducerType, Output> {
         }
     }
     private var stateObservers: [(State) -> Void] = []
-    private var outputObservers: [(Output) -> Void] = []
+    private var moduleHooks: [ModuleHook] = []
     
     private let intentReducer: FlatMapLatestReducer<IntentReducer>
     private let reduceChange: ChangeReducer
-    private let reduceOutput: OutputReducer
     
     private let stateQueue: DispatchQueue
-    private let intentQueue = DispatchQueue(label: "ReduceIntent", qos: DispatchQoS(qosClass: .userInitiated, relativePriority: 0))
+    private let processingQueue = DispatchQueue(label: "ReduceIntent", qos: DispatchQoS(qosClass: .userInitiated, relativePriority: 0))
     
     init(
         initialState: State,
         reducer: IntentReducer,
         reduceChange: @escaping ChangeReducer,
-        reduceOutput: @escaping OutputReducer,
         stateQueue: DispatchQueue = DispatchQueue.main
         )
     {
         self.state = initialState
         self.intentReducer = FlatMapLatestReducer<IntentReducer>(reducer)
         self.reduceChange = reduceChange
-        self.reduceOutput = reduceOutput
         self.stateQueue = stateQueue
     }
     
@@ -108,16 +104,23 @@ class NonRxStore<IntentReducer: ReducerType, Output> {
     
     func dispatchIntent(_ intent: Intent) {
         // Intent processing is UI agnostic and is thus performed off the main thread.
-        intentQueue.async { [weak self] in
+        processingQueue.async { [weak self] in
             guard let strongSelf = self else { return }
+            
+            let _state = strongSelf.state
             
             strongSelf.intentReducer.reduceIntent(
                 intent,
-                getState: { return strongSelf.state },
+                state: _state,
                 emitChange: { strongSelf.handleChange($0) }
             )
             
-            
+            strongSelf.moduleHooks.forEach({
+                $0(intent, _state, { [weak self] change in
+                    guard let strongSelf = self else { return }
+                    strongSelf.handleChange(change)
+                })
+            })
             
         }
     }
@@ -127,8 +130,8 @@ class NonRxStore<IntentReducer: ReducerType, Output> {
         state = newState
     }
     
-    func observeOutput(_ observer: @escaping (Output) -> Void) {
-        outputObservers.append(observer)
+    func hookIn(_ hook: @escaping ModuleHook) {
+        moduleHooks.append(hook)
     }
     
 }
