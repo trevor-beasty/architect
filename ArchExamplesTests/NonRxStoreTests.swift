@@ -76,7 +76,7 @@ class NonRxStoreTests: XCTestCase {
         XCTAssertEqual(stateSequence, [MockState.A])
     }
 
-    func test_GivenSingleChange_IntentEvent_EmitsState() {
+    func test_GivenImmediateReduceIntent_WhenIntent_EmitsState() {
         // given
         setUpWith(
             initialState: MockState.A,
@@ -93,7 +93,7 @@ class NonRxStoreTests: XCTestCase {
         XCTAssertEqual(stateSequence, [MockState.A])
     }
     
-    func test_GivenImmediateAndDelayedChange_IntentEvent_EmitsState() {
+    func test_GivenImmediateAndDelayedReduceIntent_WhenIntent_EmitsState() {
         // given
         setUpWith(
             initialState: MockState.A,
@@ -112,6 +112,43 @@ class NonRxStoreTests: XCTestCase {
         
         // then
         XCTAssertEqual(stateSequence, [MockState.A, MockState.A])
+    }
+    
+    func test_GivenDelayedReduceIntentA_WhenIntentAThenIntenB_IgnoresDelayedChange() {
+        // given
+        setUpWith(
+            initialState: MockState.A,
+            reduceIntent: { intent, _, emitChange in
+                switch intent {
+                case .A:
+                    self.queue.asyncAfter(deadline: .now() + 0.3, execute: { emitChange(MockChange.A) })
+                case .B:
+                    emitChange(MockChange.B)
+                case .C:
+                    fatalError()
+                }
+                
+        },
+            changeReducer: { change, _ in
+                switch change {
+                case .A:
+                    return MockState.A
+                case .B:
+                    return MockState.B
+                case .C:
+                    fatalError()
+                }
+        })
+        clearStateSequence()
+        
+        // when
+        subject.dispatchIntent(MockIntent.A)
+        subject.dispatchIntent(MockIntent.B)
+        exhaustQueue(maxDelay: 0.3)
+        
+        
+        // then
+        XCTAssertEqual(stateSequence, [MockState.B])
     }
     
     private func exhaustQueue(_ timeout: Double = 0.001) {
