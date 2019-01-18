@@ -127,6 +127,7 @@
 		E2D4B36621DA87C7000C7B10 /* ArchExamples */ = {
 			isa = PBXGroup;
 			children = (
+				E2D74B2A21F2345400B9A204 /* Stores */,
 				E2D4B37921DA895D000C7B10 /* ToDo */,
 				E2D4B36721DA87C7000C7B10 /* AppDelegate.swift */,
 				E2D4B36921DA87C7000C7B10 /* ViewController.swift */,
@@ -142,14 +143,21 @@
 			isa = PBXGroup;
 			children = (
 				E2D4B37A21DA8980000C7B10 /* ToDoListStore.swift */,
-				E29E062321F171B60044C5A1 /* NonRxStore.swift */,
 				E24FA80F21EEBB61003EA742 /* ToDoService.swift */,
 				E2D4B37C21DA89B3000C7B10 /* ToDoListViewController.swift */,
 				E24FA80D21EE8D6F003EA742 /* ToDoDetailViewController.swift */,
 				E29E061F21EFDA390044C5A1 /* ToDoDetailStore.swift */,
-				E29E062121EFDBD50044C5A1 /* Store.swift */,
 			);
 			path = ToDo;
+			sourceTree = "<group>";
+		};
+		E2D74B2A21F2345400B9A204 /* Stores */ = {
+			isa = PBXGroup;
+			children = (
+				E29E062121EFDBD50044C5A1 /* Store.swift */,
+				E29E062321F171B60044C5A1 /* NonRxStore.swift */,
+			);
+			path = Stores;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

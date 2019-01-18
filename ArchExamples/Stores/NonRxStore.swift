@@ -13,6 +13,17 @@ protocol ReducerType: AnyObject {
     associatedtype Intent
     associatedtype Change
     
+    // () -> State: ReducerType may read state synchronously, but cannot read state asynchronously (at invocation time of delayed Change)
+    //
+    // @escaping (Change) -> Void: Changes may be emitted synchronously or asynchronously.
+    //     - a simple reduction would immediately emit a change
+    //     - a complex reduction would emit a change at some later point
+    //     - this api is agnostic to sync / async, all changes are emitted via: @escaping (Change) -> Void
+    //     - in Rx speak, @escaping (Change) -> Void is an 'Observer'
+    //
+    // Typically a reduction would have a synchronous return value: (A, B) -> C. This is a nuanced 'reduction',
+    // which could perhaps be interpreted as 'plural reduction': (A, B, @escaping (C) - > Void) -> Void.
+    
     typealias ReduceIntent = (Intent, () -> State, @escaping (Change) -> Void) -> Void
     
     func reduceIntent(_ intent: Intent, getState: () -> State, emitChange: @escaping (Change) -> Void)
@@ -40,7 +51,7 @@ class FlatMapLatestReducer<Reducer: ReducerType>: ReducerType {
     }
     
     func reduceIntent(_ intent: Intent, getState: () -> State, emitChange: @escaping (Change) -> Void) {
-        // If this function has been invoked since the last invocation, do not send changes emitted from that reduction.
+        // Do not emit changes emitted from a prior intent reduction.
         flagThreshold += 1
         let flag = flagThreshold
         reducer.reduceIntent(intent, getState: getState, emitChange: { [weak self] change in
