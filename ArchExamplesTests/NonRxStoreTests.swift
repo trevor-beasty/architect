@@ -64,7 +64,7 @@ class NonRxStoreTests: XCTestCase {
         setUpWith(
             initialState: MockState.A,
             reduceIntent: { _, _, emitChange in return emitChange(MockChange.A) },
-            changeReducer: { _, _ in return MockState.A }
+            changeReducer: { _, getState in return getState() }
         )
         
         // when
