@@ -68,7 +68,7 @@ class FlatMapLatestReducer<Reducer: ReducerType>: ReducerType {
     
 }
 
-class NonRxStore<IntentReducer: ReducerType> {
+class NonRxStore<IntentReducer: ReducerType>: ObservableType {
     typealias State = IntentReducer.State
     typealias Intent = IntentReducer.Intent
     typealias Change = IntentReducer.Change
