@@ -50,25 +50,8 @@ class NonRxStoreTests: XCTestCase {
     typealias Store = NonRxStore<IntentReducer>
     typealias ChangeReducer = Store.ChangeReducer
     typealias ModuleHook = Store.ModuleHook
-
-    private func setUpWith(
-        initialState: IntentReducer.State,
-        reduceIntent: @escaping IntentReducer.ReduceIntent,
-        changeReducer: @escaping ChangeReducer
-        )
-    {
-        queue = DispatchQueue.main
-        stateSequence = []
-        let intentReducer = MockReducer<MockState, MockIntent, MockChange>()
-        intentReducer._handler = reduceIntent
-        subject = Store(initialState: initialState, reducer: intentReducer, reduceChange: changeReducer, stateQueue: queue)
-        subject.observeState({ state in self.stateSequence.append(state) })
-    }
-
-    override func tearDown() {
-        subject = nil
-        super.tearDown()
-    }
+    
+    // MARK: - Internal
     
     func test_Observing_EmitsInitialState() {
         // given
@@ -238,6 +221,31 @@ class NonRxStoreTests: XCTestCase {
         XCTAssertEqual(stateSequence, [MockState.C])
     }
     
+    // MARK: Module Hooks
+
+}
+
+extension NonRxStoreTests {
+    
+    private func setUpWith(
+        initialState: IntentReducer.State,
+        reduceIntent: @escaping IntentReducer.ReduceIntent,
+        changeReducer: @escaping ChangeReducer
+        )
+    {
+        queue = DispatchQueue.main
+        stateSequence = []
+        let intentReducer = MockReducer<MockState, MockIntent, MockChange>()
+        intentReducer._handler = reduceIntent
+        subject = Store(initialState: initialState, reducer: intentReducer, reduceChange: changeReducer, stateQueue: queue)
+        subject.observeState({ state in self.stateSequence.append(state) })
+    }
+    
+    override func tearDown() {
+        subject = nil
+        super.tearDown()
+    }
+    
     private func exhaustQueue(_ timeout: Double = 0.001) {
         let queueExhausted = expectation(description: "queue exhausted")
         queue.asyncAfter(deadline: .now() + timeout) {
@@ -260,5 +268,5 @@ class NonRxStoreTests: XCTestCase {
             execute: emitChange
         )
     }
-
+    
 }
