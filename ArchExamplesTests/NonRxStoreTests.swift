@@ -78,7 +78,7 @@ class NonRxStoreTests: XCTestCase {
         setUpWith(
             initialState: MockState.A,
             reduceIntent: { _, _, emitChange in return emitChange(MockChange.A) },
-            changeReducer: { _, getState in return getState() }
+            changeReducer: { _, state in return state }
         )
         
         // when
@@ -120,10 +120,53 @@ class NonRxStoreTests: XCTestCase {
         // when
         subject.dispatchIntent(MockIntent.A)
         exhaustQueue(maxDelay: 0.3)
-
         
         // then
         XCTAssertEqual(stateSequence, [MockState.A, MockState.A])
+    }
+    
+    func test_GivenMapping_WhenImmediateAndDelayedReduceIntent_StateInDelayedChangeIsNotMutated() {
+        // given
+        setUpWith(
+            initialState: MockState.A,
+            reduceIntent: { _, state, emitChange in
+                // Given that change A produces state B, the state must necessarily be state B following change A. We do
+                // not have read access to this new state immediately following the synchronous change. We will only ever be aware of the state at the
+                // moment of the intent. This greatly reduces complexity - if we were able to synchronously
+                // read state, () -> State, we open the door to more complex business logic based on the new state following a
+                // synchronous mutation. Consider:
+                //                let readState: () -> MockState = { fatalError() }
+                //                XCTAssertEqual(readState(), MockState.A)
+                //                emitChange(MockChange.A)
+                //                XCTAssertEqual(readState(), MockState.B)
+                emitChange(MockChange.A)
+                XCTAssertEqual(state, MockState.A)
+                
+                self.emitDelayedChange(
+                    {
+                        // Similarly, we cannot read mutated state at the moment of a delayed change, which would require
+                        // @escaping () -> State.
+                        XCTAssertEqual(state, MockState.A)
+                        emitChange(MockChange.B)
+                },
+                    delay: 0.3)
+        },
+            changeReducer: { change, _ in
+                switch change {
+                case .A:
+                    return MockState.B
+                case .B:
+                    return MockState.C
+                case .C:
+                    fatalError()
+                }
+        }
+        )
+        clearStateSequence()
+        
+        // when
+        subject.dispatchIntent(MockIntent.A)
+        exhaustQueue(maxDelay: 0.3)
     }
     
     func test_GivenDelayedReduceIntentA_WhenIntentAThenIntenB_IgnoresDelayedChange() {

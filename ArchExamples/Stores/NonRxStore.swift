@@ -13,7 +13,8 @@ protocol ReducerType: AnyObject {
     associatedtype Intent
     associatedtype Change
     
-    // () -> State: ReducerType may read state synchronously, but cannot read state asynchronously (at invocation time of delayed Change)
+    // State: ReducerType is given a state value which reflects
+    // the state at the moment of intent.
     //
     // @escaping (Change) -> Void: Changes may be emitted synchronously or asynchronously.
     //     - a simple reduction would immediately emit a change
@@ -61,7 +62,7 @@ class NonRxStore<IntentReducer: ReducerType> {
     typealias Intent = IntentReducer.Intent
     typealias Change = IntentReducer.Change
     
-    typealias ChangeReducer = (Change, () -> State) -> State
+    typealias ChangeReducer = (Change, State) -> State
     typealias ModuleHook = (Intent, State, @escaping (Change) -> Void) -> Void
     
     private var state: State {
@@ -130,7 +131,7 @@ class NonRxStore<IntentReducer: ReducerType> {
     }
     
     private func handleChange(_ change: Change) {
-        let newState = reduceChange(change, { return self.state })
+        let newState = reduceChange(change, state)
         state = newState
     }
     
