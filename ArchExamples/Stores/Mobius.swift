@@ -8,14 +8,7 @@
 
 import Foundation
 
-protocol EffectHandlerType: AnyObject {
-    associatedtype Effect
-    associatedtype Event
-    
-    func handleEffect(_ effect: Effect, emitEvent: @escaping (Event) -> Void)
-}
-
-class EffectHandler<Effect, Event>: EffectHandlerType {
+class MobiusEffectHandler<Effect, Event> {
     
     private let _handler: (Effect, @escaping (Event) -> Void) -> Void
     
@@ -29,23 +22,14 @@ class EffectHandler<Effect, Event>: EffectHandlerType {
     
 }
 
-protocol MobiusStoreType: AnyObject {
-    associatedtype State
-    associatedtype Event
-    associatedtype Effect
+class MobiusStore<State, Event, Effect> {
     
+    typealias Reduce = (Event, State) -> (State?, [Effect]?)
+    typealias EffectHandler = MobiusEffectHandler<Effect, Event>
     typealias StateObserver = (State) -> Void
     
-    func observeState(_ observer: @escaping (State) -> Void)
-    func dispatchEvent(_ event: Event)
-}
-
-class MobiusStore<State, Event, Effect>: MobiusStoreType {
-    
-    typealias Reduce = (Event, State) -> (State, [Effect])
-    
     let reduce: Reduce
-    let effectHandler: EffectHandler<Effect, Event>
+    let effectHandler: EffectHandler
     
     private var state: State {
         didSet {
@@ -54,7 +38,7 @@ class MobiusStore<State, Event, Effect>: MobiusStoreType {
     }
     private var stateObservers: [StateObserver] = []
     
-    init(initialState: State, reduce: @escaping Reduce, effectHandler: EffectHandler<Effect, Event>) {
+    init(initialState: State, reduce: @escaping Reduce, effectHandler: EffectHandler) {
         self.state = initialState
         self.reduce = reduce
         self.effectHandler = effectHandler
@@ -67,13 +51,19 @@ class MobiusStore<State, Event, Effect>: MobiusStoreType {
     
     func dispatchEvent(_ event: Event) {
         let (newState, effects) = reduce(event, state)
-        state = newState
-        effects.forEach({
-            effectHandler.handleEffect($0, emitEvent: { [weak self] (event) in
-                guard let strongSelf = self else { return }
-                strongSelf.dispatchEvent(event)
+        
+        if let someNewState = newState {
+            state = someNewState
+        }
+        
+        if let someEffects = effects {
+            someEffects.forEach({
+                effectHandler.handleEffect($0, emitEvent: { [weak self] (event) in
+                    guard let strongSelf = self else { return }
+                    strongSelf.dispatchEvent(event)
+                })
             })
-        })
+        }
     }
     
 }
